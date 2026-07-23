@@ -1,0 +1,815 @@
+<title>Lull — Baby Tracker (Prototype)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+<style>
+  /* ---------- Design tokens ---------- */
+  :root {
+    /* light / day */
+    --bg: #eaeef7;
+    --bg-glow: #dfe6f5;
+    --surface: #ffffff;
+    --surface-2: #f3f6fc;
+    --border: #e2e7f1;
+    --border-strong: #d3dae8;
+    --text: #1a2138;
+    --text-dim: #59617c;
+    --text-faint: #8a92ad;
+    --accent: #e2a244;
+    --accent-ink: #2a1c00;
+    --feed: #e8663b;
+    --sleep: #6b5cd6;
+    --diaper: #12a184;
+    --good: #1fa06f;
+    --shadow: 0 10px 30px rgba(30, 40, 70, .10);
+    --shadow-sheet: 0 -12px 40px rgba(20, 28, 55, .18);
+    --ring: rgba(226,162,68,.55);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1526;
+      --bg-glow: #182142;
+      --surface: #172038;
+      --surface-2: #1e2842;
+      --border: #29344f;
+      --border-strong: #34426180;
+      --text: #eef1f8;
+      --text-dim: #9aa5c0;
+      --text-faint: #6b7796;
+      --accent: #f0c07a;
+      --accent-ink: #241700;
+      --feed: #ff9e7d;
+      --sleep: #9c8cff;
+      --diaper: #4fc9ac;
+      --good: #58d69e;
+      --shadow: 0 12px 34px rgba(0, 0, 0, .38);
+      --shadow-sheet: 0 -14px 44px rgba(0, 0, 0, .5);
+      --ring: rgba(240,192,122,.5);
+    }
+  }
+  /* explicit host toggle overrides — must win in both directions */
+  :root[data-theme="light"] {
+    --bg: #eaeef7; --bg-glow: #dfe6f5; --surface: #ffffff; --surface-2: #f3f6fc;
+    --border: #e2e7f1; --border-strong: #d3dae8; --text: #1a2138; --text-dim: #59617c;
+    --text-faint: #8a92ad; --accent: #e2a244; --accent-ink: #2a1c00; --feed: #e8663b;
+    --sleep: #6b5cd6; --diaper: #12a184; --good: #1fa06f;
+    --shadow: 0 10px 30px rgba(30,40,70,.10); --shadow-sheet: 0 -12px 40px rgba(20,28,55,.18);
+    --ring: rgba(226,162,68,.55);
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1526; --bg-glow: #182142; --surface: #172038; --surface-2: #1e2842;
+    --border: #29344f; --border-strong: #34426180; --text: #eef1f8; --text-dim: #9aa5c0;
+    --text-faint: #6b7796; --accent: #f0c07a; --accent-ink: #241700; --feed: #ff9e7d;
+    --sleep: #9c8cff; --diaper: #4fc9ac; --good: #58d69e;
+    --shadow: 0 12px 34px rgba(0,0,0,.38); --shadow-sheet: 0 -14px 44px rgba(0,0,0,.5);
+    --ring: rgba(240,192,122,.5);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background:
+      radial-gradient(120% 60% at 50% -8%, var(--bg-glow), transparent 60%),
+      var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.45;
+    min-height: 100dvh;
+  }
+  .tnum { font-variant-numeric: tabular-nums; }
+
+  /* ---------- App shell ---------- */
+  .app {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100dvh;
+    padding: 22px 18px calc(190px + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  /* ---------- Header ---------- */
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .greet { display: flex; flex-direction: column; gap: 2px; }
+  .greet .hi { font-size: 13px; color: var(--text-dim); letter-spacing: .02em; }
+  .baby-btn {
+    all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+    font-size: 24px; font-weight: 700; letter-spacing: -.02em; color: var(--text);
+    border-radius: 10px;
+  }
+  .baby-btn .age { font-size: 12px; font-weight: 600; color: var(--text-faint); }
+  .baby-btn:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+  .brand {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .brand .moon { width: 15px; height: 15px; color: var(--accent); }
+
+  /* ---------- Stat tiles ---------- */
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .tile {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 12px 12px 13px; box-shadow: var(--shadow); position: relative; overflow: hidden;
+  }
+  .tile .cap {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .tile .cap .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .tile .val { margin-top: 8px; font-size: 20px; font-weight: 700; letter-spacing: -.02em; }
+  .tile .val small { font-size: 12px; font-weight: 600; color: var(--text-dim); }
+  .tile .sub { font-size: 11.5px; color: var(--text-faint); margin-top: 1px; }
+
+  /* ---------- Nudge card ---------- */
+  .nudge {
+    display: flex; align-items: center; gap: 13px;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--accent) 12%, var(--surface)), var(--surface));
+    border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--border));
+    border-radius: 18px; padding: 14px 16px; box-shadow: var(--shadow);
+  }
+  .nudge .glyph {
+    width: 40px; height: 40px; border-radius: 12px; flex: none; display: grid; place-items: center;
+    background: color-mix(in srgb, var(--accent) 22%, transparent);
+    color: var(--accent);
+  }
+  .nudge .glyph svg { width: 22px; height: 22px; }
+  .nudge .txt { display: flex; flex-direction: column; gap: 1px; }
+  .nudge .lead { font-size: 12px; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; color: var(--text-faint); }
+  .nudge .msg { font-size: 15px; font-weight: 600; color: var(--text); text-wrap: balance; }
+  .nudge .msg b { color: var(--accent); font-weight: 700; }
+  .nudge .why { font-size: 12px; color: var(--text-faint); margin-top: 2px; }
+
+  /* ---------- Card ---------- */
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
+    padding: 16px; box-shadow: var(--shadow);
+  }
+  .card > .head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
+  .card > .head h2 { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: -.01em; }
+  .card > .head .meta { font-size: 12px; color: var(--text-faint); }
+
+  /* ---------- Timeline ---------- */
+  .timeline { position: relative; height: 58px; margin-top: 4px; }
+  .tl-track {
+    position: absolute; left: 0; right: 0; top: 14px; height: 30px;
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 9px; overflow: hidden;
+  }
+  .tl-grid { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--border); }
+  .tl-hour { position: absolute; top: 46px; transform: translateX(-50%); font-size: 10px; color: var(--text-faint); }
+  .tl-now { position: absolute; top: 8px; bottom: 20px; width: 2px; background: var(--accent); border-radius: 2px; z-index: 4; box-shadow: 0 0 8px var(--accent); }
+  .tl-bar { position: absolute; top: 17px; height: 24px; border-radius: 6px; z-index: 2; opacity: .92; }
+  .tl-dot { position: absolute; top: 20px; width: 11px; height: 11px; border-radius: 50%; transform: translateX(-50%); z-index: 3; border: 2px solid var(--surface); }
+
+  .legend { display: flex; gap: 14px; margin-top: 14px; flex-wrap: wrap; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--text-dim); }
+  .legend i { width: 9px; height: 9px; border-radius: 50%; }
+
+  /* ---------- Activity list ---------- */
+  .list { display: flex; flex-direction: column; }
+  .row {
+    display: flex; align-items: center; gap: 12px; padding: 11px 2px;
+    border-top: 1px solid var(--border);
+  }
+  .row:first-child { border-top: 0; }
+  .row .ic {
+    width: 38px; height: 38px; border-radius: 11px; flex: none; display: grid; place-items: center;
+  }
+  .row .ic svg { width: 20px; height: 20px; }
+  .row .body { flex: 1; min-width: 0; }
+  .row .t1 { font-size: 14.5px; font-weight: 600; }
+  .row .t2 { font-size: 12.5px; color: var(--text-faint); }
+  .row .when { font-size: 12.5px; color: var(--text-dim); text-align: right; white-space: nowrap; }
+  .row .del {
+    all: unset; cursor: pointer; color: var(--text-faint); border-radius: 8px; padding: 6px;
+    display: grid; place-items: center; opacity: .6;
+  }
+  .row .del:hover { opacity: 1; color: var(--feed); }
+  .row .del:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
+  .empty { text-align: center; color: var(--text-faint); font-size: 13.5px; padding: 20px 0 6px; }
+  .empty .big { font-size: 26px; margin-bottom: 6px; }
+
+  /* ---------- Active timer banner ---------- */
+  .timerbar {
+    position: fixed; left: 50%; transform: translateX(-50%);
+    bottom: calc(96px + env(safe-area-inset-bottom)); z-index: 40;
+    width: min(444px, calc(100vw - 36px));
+    display: none; align-items: center; gap: 12px;
+    background: var(--surface); border: 1px solid var(--border-strong); border-radius: 16px;
+    padding: 11px 12px 11px 14px; box-shadow: var(--shadow);
+  }
+  .timerbar.on { display: flex; }
+  .timerbar .pulse { width: 12px; height: 12px; border-radius: 50%; flex: none; animation: pulse 1.8s ease-in-out infinite; }
+  .timerbar .lab { flex: 1; min-width: 0; }
+  .timerbar .lab .k { font-size: 12px; color: var(--text-faint); font-weight: 600; letter-spacing: .03em; text-transform: uppercase; }
+  .timerbar .lab .v { font-size: 20px; font-weight: 700; letter-spacing: -.01em; }
+  .timerbar .stop {
+    all: unset; cursor: pointer; font-size: 14px; font-weight: 700; color: var(--accent-ink);
+    background: var(--accent); padding: 10px 16px; border-radius: 11px;
+  }
+  .timerbar .stop:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1);} 50% { opacity: .4; transform: scale(.82);} }
+
+  /* ---------- Action bar ---------- */
+  .actionbar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+    padding: 12px 18px calc(14px + env(safe-area-inset-bottom));
+    display: flex; justify-content: center;
+    background: linear-gradient(180deg, transparent, var(--bg) 32%);
+  }
+  .actions { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; width: min(480px, 100%); }
+  .act {
+    all: unset; cursor: pointer; box-sizing: border-box;
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    padding: 13px 6px; border-radius: 18px; font-weight: 700; font-size: 13px;
+    background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow);
+    transition: transform .08s ease, background .15s ease;
+    color: var(--text);
+  }
+  .act:active { transform: translateY(2px) scale(.985); }
+  .act:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  .act svg { width: 26px; height: 26px; }
+  .act.feed { color: var(--feed); }
+  .act.sleep { color: var(--sleep); }
+  .act.diaper { color: var(--diaper); }
+  .act .lbl { color: var(--text); }
+  .act.more { padding: 13px 16px; color: var(--text-dim); }
+  .act.armed { background: color-mix(in srgb, var(--sleep) 20%, var(--surface)); border-color: var(--sleep); }
+
+  /* ---------- Bottom sheet ---------- */
+  .scrim {
+    position: fixed; inset: 0; z-index: 50; background: rgba(8,12,24,.5);
+    backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity .2s ease;
+  }
+  .scrim.on { opacity: 1; pointer-events: auto; }
+  .sheet {
+    position: fixed; left: 50%; bottom: 0; transform: translate(-50%, 100%);
+    z-index: 51; width: min(480px, 100%);
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 24px 24px 0 0; box-shadow: var(--shadow-sheet);
+    padding: 10px 18px calc(22px + env(safe-area-inset-bottom));
+    transition: transform .26s cubic-bezier(.22,.8,.28,1);
+    max-height: 86dvh; overflow-y: auto;
+  }
+  .sheet.on { transform: translate(-50%, 0); }
+  .grip { width: 40px; height: 4px; border-radius: 3px; background: var(--border-strong); margin: 4px auto 14px; }
+  .sheet h3 { margin: 0 0 3px; font-size: 19px; font-weight: 700; letter-spacing: -.02em; }
+  .sheet .sub { margin: 0 0 16px; font-size: 13px; color: var(--text-faint); }
+
+  .tabs { display: flex; gap: 6px; background: var(--surface-2); padding: 4px; border-radius: 13px; margin-bottom: 16px; }
+  .tabs button {
+    all: unset; cursor: pointer; flex: 1; text-align: center; padding: 9px 4px; border-radius: 10px;
+    font-size: 13.5px; font-weight: 600; color: var(--text-dim);
+  }
+  .tabs button[aria-selected="true"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+  .tabs button:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
+
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .seg.three { grid-template-columns: repeat(3, 1fr); }
+  .chip {
+    all: unset; cursor: pointer; box-sizing: border-box; text-align: center;
+    padding: 16px 8px; border-radius: 15px; font-size: 15px; font-weight: 700;
+    background: var(--surface-2); border: 1.5px solid var(--border); color: var(--text);
+    display: flex; flex-direction: column; align-items: center; gap: 7px;
+  }
+  .chip svg { width: 24px; height: 24px; }
+  .chip:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  .chip[aria-pressed="true"] { border-color: currentColor; background: color-mix(in srgb, currentColor 14%, var(--surface)); }
+  .chip.f { color: var(--feed); } .chip.s { color: var(--sleep); } .chip.d { color: var(--diaper); }
+  .chip .cl { color: var(--text); font-size: 15px; }
+  .chip small { color: var(--text-faint); font-size: 11.5px; font-weight: 600; }
+
+  .stepper { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 15px; padding: 12px 14px; margin-bottom: 14px; }
+  .stepper .amt { font-size: 30px; font-weight: 700; letter-spacing: -.02em; }
+  .stepper .amt small { font-size: 15px; color: var(--text-dim); font-weight: 600; }
+  .stepper .pm { display: flex; gap: 8px; }
+  .rnd { all: unset; cursor: pointer; width: 46px; height: 46px; border-radius: 50%;
+    display: grid; place-items: center; font-size: 24px; font-weight: 700;
+    background: var(--surface); border: 1.5px solid var(--border-strong); color: var(--text); }
+  .rnd:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  .rnd:active { transform: scale(.94); }
+
+  .field { width: 100%; box-sizing: border-box; background: var(--surface-2); border: 1px solid var(--border);
+    color: var(--text); border-radius: 13px; padding: 13px 14px; font-size: 15px; margin-bottom: 14px;
+    font-family: inherit; }
+  .field:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
+
+  .cta {
+    all: unset; cursor: pointer; box-sizing: border-box; width: 100%; text-align: center;
+    padding: 16px; border-radius: 16px; font-size: 16px; font-weight: 700;
+    background: var(--accent); color: var(--accent-ink);
+  }
+  .cta:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  .cta:active { transform: translateY(1px); }
+  .cta.ghost { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+  .cta.big { display: flex; align-items: center; justify-content: center; gap: 9px; }
+  .cta.big svg { width: 22px; height: 22px; }
+  .ctarow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .unitrow { display: flex; gap: 8px; margin-bottom: 16px; }
+  .unitrow button { all: unset; cursor: pointer; padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 600;
+    background: var(--surface-2); border: 1px solid var(--border); color: var(--text-dim); }
+  .unitrow button[aria-pressed="true"] { color: var(--text); border-color: var(--border-strong); }
+
+  /* ---------- Toast ---------- */
+  .toast {
+    position: fixed; left: 50%; transform: translate(-50%, 20px);
+    bottom: calc(170px + env(safe-area-inset-bottom)); z-index: 60;
+    background: var(--text); color: var(--bg);
+    padding: 11px 14px; border-radius: 13px; font-size: 13.5px; font-weight: 600;
+    display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow);
+    opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease; max-width: 90vw;
+  }
+  .toast.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  .toast button { all: unset; cursor: pointer; color: var(--accent); font-weight: 800; }
+  .toast button:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 4px; }
+
+  .foot { text-align: center; font-size: 11.5px; color: var(--text-faint); margin-top: 2px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+  }
+</style>
+
+<div class="app" id="app">
+  <header>
+    <div class="greet">
+      <span class="hi" id="greet">Good evening</span>
+      <button class="baby-btn" id="babyBtn" aria-label="Edit baby profile">
+        <span id="babyName">Baby</span><span class="age" id="babyAge"></span>
+      </button>
+    </div>
+    <span class="brand">
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      Lull
+    </span>
+  </header>
+
+  <section class="stats" id="stats"></section>
+
+  <section class="nudge" id="nudge" hidden>
+    <div class="glyph" id="nudgeGlyph"></div>
+    <div class="txt">
+      <span class="lead">Next up</span>
+      <span class="msg" id="nudgeMsg"></span>
+      <span class="why" id="nudgeWhy"></span>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="head"><h2>Today's rhythm</h2><span class="meta" id="tlDate"></span></div>
+    <div class="timeline" id="timeline"></div>
+    <div class="legend">
+      <span><i style="background:var(--feed)"></i>Feed</span>
+      <span><i style="background:var(--sleep)"></i>Sleep</span>
+      <span><i style="background:var(--diaper)"></i>Diaper</span>
+      <span><i style="background:var(--accent)"></i>Now</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="head"><h2>Recent activity</h2><span class="meta" id="countMeta"></span></div>
+    <div class="list" id="list"></div>
+  </section>
+
+  <p class="foot">Prototype · data is saved only on this device · <button id="resetBtn" style="all:unset;cursor:pointer;color:var(--text-dim);text-decoration:underline">reset demo</button></p>
+</div>
+
+<!-- Active timer -->
+<div class="timerbar" id="timerbar" role="status" aria-live="polite">
+  <span class="pulse" id="timerPulse"></span>
+  <div class="lab"><div class="k" id="timerK">Nursing</div><div class="v tnum" id="timerV">0:00</div></div>
+  <button class="stop" id="timerStop">Stop</button>
+</div>
+
+<!-- Action bar -->
+<nav class="actionbar" aria-label="Log an event">
+  <div class="actions">
+    <button class="act feed" id="actFeed">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2h8M9 2l.6 3M15 2l-.6 3"/><path d="M7.5 8.5c0-1.7 1.2-3 2.7-3.4h3.6c1.5.4 2.7 1.7 2.7 3.4V19a3 3 0 0 1-3 3H10.5a3 3 0 0 1-3-3z"/><path d="M8 12h4M8 15.5h4"/></svg>
+      <span class="lbl">Feed</span>
+    </button>
+    <button class="act sleep" id="actSleep">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      <span class="lbl" id="sleepLbl">Sleep</span>
+    </button>
+    <button class="act diaper" id="actDiaper">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18v3a9 9 0 0 1-9 9 9 9 0 0 1-9-9z"/><path d="M3 6c4 1.5 14 1.5 18 0"/></svg>
+      <span class="lbl">Diaper</span>
+    </button>
+    <button class="act more" id="actMore" aria-label="More options">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg>
+      <span class="lbl">More</span>
+    </button>
+  </div>
+</nav>
+
+<!-- Sheet -->
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><span id="toastMsg"></span><button id="toastAction" hidden></button></div>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var EVENTS_KEY = "lull.events.v3", BABY_KEY = "lull.baby.v3", TIMER_KEY = "lull.timer.v3", PREF_KEY = "lull.pref.v3";
+
+  var db = { events: load(EVENTS_KEY, null), baby: load(BABY_KEY, null), timer: load(TIMER_KEY, null), pref: load(PREF_KEY, { unit: "ml", side: "L" }) };
+  var lastDeleted = null, toastTimer = null;
+
+  function load(k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+  function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function persist() { save(EVENTS_KEY, db.events); save(BABY_KEY, db.baby); save(TIMER_KEY, db.timer); save(PREF_KEY, db.pref); }
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+  /* ---- seed a realistic first-run day so the prototype feels alive ---- */
+  if (db.events === null) {
+    db.baby = { name: "Baby", dob: Date.now() - 1000 * 60 * 60 * 24 * 84 }; // ~12 weeks
+    db.events = seed();
+    persist();
+  }
+  if (!db.baby) db.baby = { name: "Baby", dob: null };
+
+  function seed() {
+    var now = Date.now(), H = 3600000, M = 60000, e = [];
+    function add(o) { e.push(o); }
+    add({ id: uid(), type: "feed", sub: "nursing", side: "L", start: now - 6.7 * H, end: now - 6.7 * H + 16 * M });
+    add({ id: uid(), type: "diaper", sub: "wet", start: now - 6.4 * H });
+    add({ id: uid(), type: "sleep", start: now - 6.1 * H, end: now - 4.2 * H });
+    add({ id: uid(), type: "feed", sub: "bottle", amount: 120, unit: "ml", start: now - 4.0 * H });
+    add({ id: uid(), type: "diaper", sub: "dirty", start: now - 3.6 * H });
+    add({ id: uid(), type: "sleep", start: now - 3.1 * H, end: now - 1.7 * H });
+    add({ id: uid(), type: "feed", sub: "nursing", side: "R", start: now - 1.5 * H, end: now - 1.5 * H + 19 * M });
+    add({ id: uid(), type: "diaper", sub: "mixed", start: now - 1.1 * H });
+    return e.sort(function (a, b) { return a.start - b.start; });
+  }
+
+  /* ---------- time helpers ---------- */
+  function fmtClock(ts) { return new Date(ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
+  function ago(ts) {
+    var s = Math.max(0, Math.floor((Date.now() - ts) / 1000));
+    if (s < 60) return "just now";
+    var m = Math.floor(s / 60); if (m < 60) return m + "m ago";
+    var h = Math.floor(m / 60), r = m % 60; return r ? h + "h " + r + "m ago" : h + "h ago";
+  }
+  function dur(ms) {
+    var s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = s % 60;
+    if (h > 0) return h + ":" + String(m).padStart(2, "0") + ":" + String(ss).padStart(2, "0");
+    return m + ":" + String(ss).padStart(2, "0");
+  }
+  function durShort(ms) {
+    var m = Math.round(ms / 60000); if (m < 60) return m + "m";
+    var h = Math.floor(m / 60), r = m % 60; return r ? h + "h " + r + "m" : h + "h";
+  }
+  function startOfDay() { var d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime(); }
+  function todays() { var s = startOfDay(); return db.events.filter(function (x) { return x.start >= s; }); }
+  function ageText() {
+    if (!db.baby.dob) return "";
+    var d = Math.floor((Date.now() - db.baby.dob) / 86400000);
+    if (d < 14) return d + "d";
+    if (d < 90) return Math.floor(d / 7) + "w";
+    return Math.floor(d / 30.4) + "mo";
+  }
+
+  var ICONS = {
+    feed: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2h8M9 2l.6 3M15 2l-.6 3"/><path d="M7.5 8.5c0-1.7 1.2-3 2.7-3.4h3.6c1.5.4 2.7 1.7 2.7 3.4V19a3 3 0 0 1-3 3H10.5a3 3 0 0 1-3-3z"/><path d="M8 12h4"/></svg>',
+    sleep: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
+    diaper: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18v3a9 9 0 0 1-9 9 9 9 0 0 1-9-9z"/><path d="M3 6c4 1.5 14 1.5 18 0"/></svg>',
+    clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'
+  };
+  function colorFor(t) { return t === "feed" ? "var(--feed)" : t === "sleep" ? "var(--sleep)" : "var(--diaper)"; }
+  function tint(t) { return "color-mix(in srgb, " + colorFor(t) + " 18%, transparent)"; }
+
+  function labelFor(ev) {
+    if (ev.type === "feed") {
+      if (ev.sub === "nursing") return "Nursing";
+      if (ev.sub === "bottle") return "Bottle";
+      if (ev.sub === "solids") return "Solids";
+      if (ev.sub === "pump") return "Pumped";
+      return "Feed";
+    }
+    if (ev.type === "sleep") return "Sleep";
+    if (ev.type === "diaper") return "Diaper";
+    return "Event";
+  }
+  function detailFor(ev) {
+    if (ev.type === "feed") {
+      if (ev.sub === "nursing") return (ev.side === "R" ? "Right" : "Left") + (ev.end ? " · " + durShort(ev.end - ev.start) : "");
+      if (ev.sub === "bottle") return ev.amount + " " + (ev.unit || "ml");
+      if (ev.sub === "solids") return ev.note || "solids";
+      if (ev.sub === "pump") return (ev.amount || "") + " " + (ev.unit || "ml");
+    }
+    if (ev.type === "sleep") return ev.end ? durShort(ev.end - ev.start) : "in progress";
+    if (ev.type === "diaper") return ev.sub === "wet" ? "Wet" : ev.sub === "dirty" ? "Dirty" : "Wet + dirty";
+    return "";
+  }
+
+  /* ---------- RENDER ---------- */
+  function render() {
+    var g = $("#greet"), hh = new Date().getHours();
+    g.textContent = hh < 5 ? "Late night" : hh < 12 ? "Good morning" : hh < 17 ? "Good afternoon" : hh < 22 ? "Good evening" : "Late night";
+    $("#babyName").textContent = db.baby.name || "Baby";
+    $("#babyAge").textContent = ageText() ? "· " + ageText() : "";
+    $("#tlDate").textContent = new Date().toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+
+    renderStats();
+    renderNudge();
+    renderTimeline();
+    renderList();
+    renderTimer();
+  }
+
+  function lastFeed() {
+    var f = db.events.filter(function (x) { return x.type === "feed"; });
+    return f.length ? f[f.length - 1] : null;
+  }
+  function renderStats() {
+    var lf = lastFeed();
+    var t = todays();
+    var sleepMs = t.filter(function (x) { return x.type === "sleep" && x.end; }).reduce(function (a, x) { return a + (x.end - x.start); }, 0);
+    var diapers = t.filter(function (x) { return x.type === "diaper"; }).length;
+    var feeds = t.filter(function (x) { return x.type === "feed"; }).length;
+    $("#stats").innerHTML =
+      tile("feed", "Last feed", lf ? shortAgo(lf.start) : "—", lf ? labelFor(lf) + " · " + fmtClock(lf.start) : "no feeds yet") +
+      tile("sleep", "Sleep today", sleepMs ? '<span class="tnum">' + durShort(sleepMs) + "</span>" : "0m", feeds + " feeds logged") +
+      tile("diaper", "Diapers", '<span class="tnum">' + diapers + "</span>", "today");
+  }
+  function shortAgo(ts) {
+    var m = Math.floor((Date.now() - ts) / 60000);
+    if (m < 1) return "now";
+    if (m < 60) return '<span class="tnum">' + m + "</span><small>m</small>";
+    var h = Math.floor(m / 60), r = m % 60;
+    return '<span class="tnum">' + h + "</span><small>h </small>" + '<span class="tnum">' + r + "</span><small>m</small>";
+  }
+  function tile(type, cap, val, sub) {
+    return '<div class="tile"><div class="cap"><span class="dot" style="background:' + colorFor(type) + '"></span>' + cap +
+      '</div><div class="val">' + val + '</div><div class="sub">' + sub + "</div></div>";
+  }
+
+  function renderNudge() {
+    var feeds = db.events.filter(function (x) { return x.type === "feed"; });
+    var el = $("#nudge");
+    if (feeds.length < 2) { el.hidden = true; return; }
+    el.hidden = false;
+    var gaps = [];
+    for (var i = Math.max(1, feeds.length - 5); i < feeds.length; i++) gaps.push(feeds[i].start - feeds[i - 1].start);
+    var avg = gaps.reduce(function (a, b) { return a + b; }, 0) / gaps.length;
+    var last = feeds[feeds.length - 1].start;
+    var next = last + avg, left = next - Date.now();
+    $("#nudgeGlyph").innerHTML = ICONS.feed;
+    if (left <= 0) {
+      $("#nudgeMsg").innerHTML = "Likely ready to feed <b>now</b>";
+    } else {
+      $("#nudgeMsg").innerHTML = "Next feed around <b>" + fmtClock(next) + "</b> · in " + durShort(left);
+    }
+    $("#nudgeWhy").textContent = "Based on a typical " + durShort(avg) + " gap between recent feeds.";
+  }
+
+  function renderTimeline() {
+    var tl = $("#timeline"); tl.innerHTML = "";
+    var s = startOfDay(), DAY = 86400000;
+    [0, 6, 12, 18, 24].forEach(function (h) {
+      var p = h / 24 * 100;
+      if (h > 0 && h < 24) { var g = mk("tl-grid"); g.style.left = p + "%"; tl.appendChild(g); }
+      var lab = mk("tl-hour"); lab.style.left = Math.min(98, Math.max(2, p)) + "%";
+      lab.textContent = h === 0 ? "12a" : h === 12 ? "12p" : h === 24 ? "" : (h < 12 ? h + "a" : (h - 12) + "p");
+      tl.appendChild(lab);
+    });
+    todays().forEach(function (ev) {
+      var left = (ev.start - s) / DAY * 100;
+      if (ev.type === "sleep" && ev.end) {
+        var w = (ev.end - ev.start) / DAY * 100;
+        var b = mk("tl-bar"); b.style.left = left + "%"; b.style.width = Math.max(0.8, w) + "%";
+        b.style.background = "var(--sleep)"; tl.appendChild(b);
+      } else {
+        var d = mk("tl-dot"); d.style.left = left + "%"; d.style.background = colorFor(ev.type); tl.appendChild(d);
+      }
+    });
+    var now = mk("tl-now"); now.style.left = (Date.now() - s) / DAY * 100 + "%"; tl.appendChild(now);
+  }
+  function mk(cls) { var d = document.createElement("div"); d.className = cls; return d; }
+
+  function renderList() {
+    var list = $("#list"); list.innerHTML = "";
+    var evs = db.events.slice().sort(function (a, b) { return b.start - a.start; }).slice(0, 12);
+    $("#countMeta").textContent = todays().length + " today";
+    if (!evs.length) {
+      list.innerHTML = '<div class="empty"><div class="big">🌙</div>Nothing logged yet.<br>Tap a button below to start.</div>';
+      return;
+    }
+    evs.forEach(function (ev) {
+      var row = document.createElement("div"); row.className = "row";
+      row.innerHTML =
+        '<div class="ic" style="background:' + tint(ev.type) + ';color:' + colorFor(ev.type) + '">' + ICONS[ev.type] + '</div>' +
+        '<div class="body"><div class="t1">' + labelFor(ev) + '</div><div class="t2">' + detailFor(ev) + '</div></div>' +
+        '<div class="when">' + fmtClock(ev.start) + '<br><span style="color:var(--text-faint)">' + ago(ev.start) + '</span></div>' +
+        '<button class="del" aria-label="Delete entry"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V5h6v2M7 7l1 13h8l1-13"/></svg></button>';
+      row.querySelector(".del").addEventListener("click", function () { removeEvent(ev.id); });
+      list.appendChild(row);
+    });
+  }
+
+  /* ---------- timer ---------- */
+  function renderTimer() {
+    var bar = $("#timerbar"), sLbl = $("#sleepLbl"), aSleep = $("#actSleep");
+    if (db.timer) {
+      bar.classList.add("on");
+      var isSleep = db.timer.type === "sleep";
+      $("#timerPulse").style.background = isSleep ? "var(--sleep)" : "var(--feed)";
+      $("#timerK").textContent = isSleep ? "Asleep" : "Nursing · " + (db.timer.side === "R" ? "Right" : "Left");
+      sLbl.textContent = isSleep ? "Wake" : "Sleep";
+      aSleep.classList.toggle("armed", isSleep);
+    } else {
+      bar.classList.remove("on"); sLbl.textContent = "Sleep"; aSleep.classList.remove("armed");
+    }
+    tickTimer();
+  }
+  function tickTimer() {
+    if (!db.timer) return;
+    $("#timerV").textContent = dur(Date.now() - db.timer.start);
+  }
+  function startTimer(type, side) {
+    if (db.timer) { toast("Stop the current timer first"); return; }
+    db.timer = { type: type, side: side || null, start: Date.now() };
+    persist(); render();
+    toast((type === "sleep" ? "Sleep" : "Nursing") + " started");
+  }
+  function stopTimer() {
+    if (!db.timer) return;
+    var tm = db.timer, end = Date.now();
+    db.events.push({ id: uid(), type: tm.type, sub: tm.type === "feed" ? "nursing" : undefined, side: tm.side, start: tm.start, end: end });
+    db.timer = null; persist(); render();
+    toast(labelForType(tm.type) + " logged · " + durShort(end - tm.start));
+  }
+  function labelForType(t) { return t === "sleep" ? "Sleep" : t === "feed" ? "Nursing" : "Event"; }
+  $("#timerStop").addEventListener("click", stopTimer);
+
+  /* ---------- quick logs ---------- */
+  function logDiaper(sub) { db.events.push({ id: uid(), type: "diaper", sub: sub, start: Date.now() }); persist(); render(); closeSheet(); toast("Diaper logged · " + (sub === "mixed" ? "wet + dirty" : sub)); }
+  function logBottle(amount, unit) { db.events.push({ id: uid(), type: "feed", sub: "bottle", amount: amount, unit: unit, start: Date.now() }); persist(); render(); closeSheet(); toast("Bottle logged · " + amount + " " + unit); }
+  function logSolids(food) { db.events.push({ id: uid(), type: "feed", sub: "solids", note: food || "solids", start: Date.now() }); persist(); render(); closeSheet(); toast("Solids logged"); }
+
+  function removeEvent(id) {
+    var i = db.events.findIndex(function (x) { return x.id === id; });
+    if (i < 0) return;
+    lastDeleted = db.events[i]; db.events.splice(i, 1); persist(); render();
+    toast("Entry deleted", "Undo", function () {
+      if (lastDeleted) { db.events.push(lastDeleted); db.events.sort(function (a, b) { return a.start - b.start; }); lastDeleted = null; persist(); render(); }
+    });
+  }
+
+  /* ---------- toast ---------- */
+  function toast(msg, actionLabel, actionFn) {
+    var t = $("#toast"), a = $("#toastAction");
+    $("#toastMsg").textContent = msg;
+    if (actionLabel) { a.hidden = false; a.textContent = actionLabel; a.onclick = function () { hideToast(); actionFn && actionFn(); }; }
+    else { a.hidden = true; a.onclick = null; }
+    t.classList.add("on");
+    clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, actionLabel ? 4200 : 2000);
+  }
+  function hideToast() { $("#toast").classList.remove("on"); }
+
+  /* ---------- sheet ---------- */
+  var lastFocus = null;
+  function openSheet(html) {
+    var sh = $("#sheet"); sh.innerHTML = '<div class="grip"></div>' + html;
+    $("#scrim").classList.add("on"); sh.classList.add("on");
+    lastFocus = document.activeElement;
+    var f = sh.querySelector("button, input, [tabindex]"); if (f) setTimeout(function () { f.focus(); }, 60);
+  }
+  function closeSheet() {
+    $("#sheet").classList.remove("on"); $("#scrim").classList.remove("on");
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  $("#scrim").addEventListener("click", closeSheet);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeSheet(); });
+
+  /* ---- Feed sheet ---- */
+  function feedSheet() {
+    var unit = db.pref.unit || "ml", side = db.pref.side || "L", tab = "nursing", amount = unit === "oz" ? 4 : 120;
+    openSheet(
+      '<h3 id="sheetTitle">Log a feed</h3><p class="sub">One-handed. Start a timer or log an amount.</p>' +
+      '<div class="tabs" role="tablist">' +
+      '<button role="tab" data-t="nursing" aria-selected="true">Nursing</button>' +
+      '<button role="tab" data-t="bottle" aria-selected="false">Bottle</button>' +
+      '<button role="tab" data-t="solids" aria-selected="false">Solids</button></div>' +
+      '<div id="tabbody"></div>');
+    var tabs = $("#sheet").querySelectorAll('[role="tab"]');
+    tabs.forEach(function (b) { b.addEventListener("click", function () {
+      tab = b.dataset.t; tabs.forEach(function (x) { x.setAttribute("aria-selected", x === b ? "true" : "false"); }); paint();
+    }); });
+    function paint() {
+      var body = $("#tabbody");
+      if (tab === "nursing") {
+        body.innerHTML =
+          '<div class="seg"><button class="chip f" data-side="L" aria-pressed="' + (side === "L") + '"><span class="cl">Left</span><small>breast</small></button>' +
+          '<button class="chip f" data-side="R" aria-pressed="' + (side === "R") + '"><span class="cl">Right</span><small>breast</small></button></div>' +
+          '<button class="cta big" id="startNurse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2.5 1.5"/></svg>Start nursing timer</button>';
+        body.querySelectorAll("[data-side]").forEach(function (c) { c.addEventListener("click", function () {
+          side = c.dataset.side; db.pref.side = side; persist();
+          body.querySelectorAll("[data-side]").forEach(function (x) { x.setAttribute("aria-pressed", x === c ? "true" : "false"); });
+        }); });
+        $("#startNurse").addEventListener("click", function () { closeSheet(); startTimer("feed", side); });
+      } else if (tab === "bottle") {
+        var step = unit === "oz" ? 0.5 : 10;
+        body.innerHTML =
+          '<div class="unitrow"><button data-u="ml" aria-pressed="' + (unit === "ml") + '">ml</button><button data-u="oz" aria-pressed="' + (unit === "oz") + '">oz</button></div>' +
+          '<div class="stepper"><div class="amt"><span id="amtV" class="tnum">' + amount + '</span> <small>' + unit + '</small></div>' +
+          '<div class="pm"><button class="rnd" id="minus" aria-label="less">−</button><button class="rnd" id="plus" aria-label="more">+</button></div></div>' +
+          '<button class="cta" id="logBottle">Log bottle</button>';
+        function upd() { $("#amtV").textContent = unit === "oz" ? amount.toFixed(1) : amount; }
+        body.querySelector("#minus").addEventListener("click", function () { amount = Math.max(step, +(amount - step).toFixed(1)); upd(); });
+        body.querySelector("#plus").addEventListener("click", function () { amount = +(amount + step).toFixed(1); upd(); });
+        body.querySelectorAll("[data-u]").forEach(function (b) { b.addEventListener("click", function () {
+          unit = b.dataset.u; db.pref.unit = unit; persist(); amount = unit === "oz" ? 4 : 120; paint();
+        }); });
+        body.querySelector("#logBottle").addEventListener("click", function () { logBottle(amount, unit); });
+      } else {
+        body.innerHTML =
+          '<input class="field" id="foodInput" placeholder="What did baby eat? (optional)" autocomplete="off" />' +
+          '<button class="cta" id="logSolid">Log solids</button>';
+        body.querySelector("#logSolid").addEventListener("click", function () { logSolids(body.querySelector("#foodInput").value.trim()); });
+      }
+    }
+    paint();
+  }
+
+  /* ---- Diaper sheet ---- */
+  function diaperSheet() {
+    openSheet(
+      '<h3 id="sheetTitle">Log a diaper</h3><p class="sub">One tap.</p>' +
+      '<div class="seg three">' +
+      '<button class="chip d" data-s="wet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/></svg><span class="cl">Wet</span></button>' +
+      '<button class="chip d" data-s="dirty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 19h12a3 3 0 0 0 .5-6 4 4 0 0 0-6.9-3A3.5 3.5 0 0 0 6 13a3 3 0 0 0 0 6z"/></svg><span class="cl">Dirty</span></button>' +
+      '<button class="chip d" data-s="mixed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/><path d="M9 13h6"/></svg><span class="cl">Mixed</span></button>' +
+      '</div>');
+    $("#sheet").querySelectorAll("[data-s]").forEach(function (b) { b.addEventListener("click", function () { logDiaper(b.dataset.s); }); });
+  }
+
+  /* ---- More sheet ---- */
+  function moreSheet() {
+    openSheet(
+      '<h3 id="sheetTitle">More to log</h3><p class="sub">These come standard in the full app.</p>' +
+      '<div class="seg three">' +
+      '<button class="chip" data-m="pump"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2h8M9 2l.6 3M15 2l-.6 3M7.5 8.5c0-1.7 1.2-3 2.7-3.4h3.6c1.5.4 2.7 1.7 2.7 3.4V19a3 3 0 0 1-3 3H10.5a3 3 0 0 1-3-3z"/></svg><span class="cl">Pump</span></button>' +
+      '<button class="chip" data-m="temp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0z"/></svg><span class="cl">Temp</span></button>' +
+      '<button class="chip" data-m="med"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5 3.5 13.5a5 5 0 0 1 7-7l7 7a5 5 0 0 1-7 7z"/><path d="M8.5 8.5 15 15"/></svg><span class="cl">Meds</span></button>' +
+      '<button class="chip" data-m="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12l-4 4H4z"/><path d="M16 20v-4h4"/></svg><span class="cl">Note</span></button>' +
+      '<button class="chip" data-m="growth"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V4M4 20h16M7 16l4-5 3 3 5-7"/></svg><span class="cl">Growth</span></button>' +
+      '<button class="chip" data-m="bath"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16v3a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z"/><path d="M7 12V6a2 2 0 0 1 4 0"/></svg><span class="cl">Bath</span></button>' +
+      '</div>' +
+      '<button class="cta ghost" id="closeMore">Close</button>');
+    $("#sheet").querySelectorAll("[data-m]").forEach(function (b) { b.addEventListener("click", function () {
+      closeSheet(); toast("“" + b.querySelector(".cl").textContent + "” is in the roadmap ✨");
+    }); });
+    $("#closeMore").addEventListener("click", closeSheet);
+  }
+
+  /* ---- baby edit ---- */
+  function babySheet() {
+    var dobVal = db.baby.dob ? new Date(db.baby.dob).toISOString().slice(0, 10) : "";
+    openSheet(
+      '<h3 id="sheetTitle">Baby profile</h3><p class="sub">Used for greetings and growth charts.</p>' +
+      '<input class="field" id="nm" value="' + (db.baby.name || "") + '" placeholder="Baby\'s name" autocomplete="off" />' +
+      '<label style="font-size:12px;color:var(--text-faint);font-weight:600;display:block;margin:-6px 0 6px">Date of birth</label>' +
+      '<input class="field" id="dob" type="date" value="' + dobVal + '" />' +
+      '<div class="ctarow"><button class="cta ghost" id="cxl">Cancel</button><button class="cta" id="sv">Save</button></div>');
+    $("#cxl").addEventListener("click", closeSheet);
+    $("#sv").addEventListener("click", function () {
+      var nm = $("#nm").value.trim(), dob = $("#dob").value;
+      db.baby.name = nm || "Baby";
+      db.baby.dob = dob ? new Date(dob + "T12:00:00").getTime() : null;
+      persist(); render(); closeSheet(); toast("Profile saved");
+    });
+  }
+
+  /* ---------- wire actions ---------- */
+  $("#actFeed").addEventListener("click", feedSheet);
+  $("#actDiaper").addEventListener("click", diaperSheet);
+  $("#actMore").addEventListener("click", moreSheet);
+  $("#babyBtn").addEventListener("click", babySheet);
+  $("#actSleep").addEventListener("click", function () {
+    if (db.timer && db.timer.type === "sleep") stopTimer();
+    else if (db.timer) toast("Stop the nursing timer first");
+    else startTimer("sleep");
+  });
+  $("#resetBtn").addEventListener("click", function () {
+    if (!confirm("Reset the demo? This clears all logged data on this device.")) return;
+    localStorage.removeItem(EVENTS_KEY); localStorage.removeItem(BABY_KEY); localStorage.removeItem(TIMER_KEY);
+    db.events = null; db.baby = null; db.timer = null;
+    db.baby = { name: "Baby", dob: Date.now() - 1000 * 60 * 60 * 24 * 84 };
+    db.events = seed(); persist(); render(); toast("Demo reset");
+  });
+
+  render();
+  setInterval(function () { tickTimer(); }, 1000);
+  setInterval(function () { render(); }, 60000); // refresh "ago" labels + nudge
+})();
+</script>
