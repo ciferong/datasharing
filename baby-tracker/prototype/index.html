@@ -347,8 +347,17 @@
   .swipeunder .sw-del, .swipeunder .sw-edit { flex: 1; display: flex; align-items: center; font-size: 13px; font-weight: 700; color: var(--panel-ink); }
   .swipeunder .sw-edit { justify-content: flex-start; padding-left: 18px; background: var(--dim); }
   .swipeunder .sw-del { justify-content: flex-end; padding-right: 18px; background: var(--feed); }
+  .rowbtn { background: var(--bg); position: relative; z-index: 1; transition: transform .22s cubic-bezier(.22,.8,.28,1); }
   .row.swiping .rowbtn { transition: none; }
-  .rowbtn { background: var(--bg); position: relative; z-index: 1; }
+  /* revealed = delete swiped-open and awaiting a confirming tap, not yet
+     committed — a destructive action never fires from drag-release alone.
+     .sw-del is a real <button> (unlike the auto-firing, non-destructive
+     .sw-edit label) so it needs its own reset + the shared panel styling
+     re-declared, since `all: unset` on the button wipes it. */
+  .swipeunder .sw-del { all: unset; box-sizing: border-box; cursor: pointer;
+    flex: 1; display: flex; align-items: center; font-size: 13px; font-weight: 700; color: var(--panel-ink);
+    justify-content: flex-end; padding-right: 18px; background: var(--feed); }
+  .swipeunder .sw-del:focus-visible { outline: 2px solid var(--ring); outline-offset: -3px; }
 
   @media (prefers-reduced-motion: reduce) { * { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
 </style>
@@ -486,7 +495,7 @@
     pref: load(K.pref, { unit:"ml", side:"L", lastAmount:null, stats:["sleep","diapers","feedVol"] }),
     care: load(K.care, null), cur: load(K.cur, "you")
   };
-  var lastDeleted = null, toastTimer = null, showAll = false;
+  var lastDeleted = null, toastTimer = null, showAll = false, revealedRow = null;
 
   function load(k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
   function saveK(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
@@ -674,9 +683,9 @@
       var row=document.createElement("div"); row.className="row rowwrap";
       row.innerHTML =
         '<div class="swipeunder" aria-hidden="true">'+
-          '<span class="sw-edit">Edit</span><span class="sw-del">Delete</span>'+
+          '<span class="sw-edit">Edit</span><button class="sw-del" tabindex="-1" aria-hidden="true">Delete</button>'+
         '</div>'+
-        '<button class="rowbtn" aria-label="Edit '+labelFor(ev)+' at '+fmtClock(ev.start)+' — or swipe right to edit, swipe left to delete">'+
+        '<button class="rowbtn" aria-label="Edit '+labelFor(ev)+' at '+fmtClock(ev.start)+' — or swipe right to edit, swipe left to reveal delete">'+
           '<div class="glyph" style="color:'+colorFor(ev.type)+'">'+ICONS[ev.type]+'<span class="who" style="background:'+who.color+'">'+who.badge+'</span></div>'+
           '<div style="flex:1;min-width:0"><div class="t1">'+labelFor(ev)+' <span style="color:var(--faint);font-weight:600">· '+detailFor(ev)+'</span></div>'+
           '<div class="t2">'+who.name+'</div></div>'+
@@ -688,36 +697,61 @@
     });
   }
 
-  /* Swipe-left reveals Edit (right panel), swipe-right reveals Delete (left
-     panel, routes through the existing Undo-backed removeEvent). Tap always
-     still opens the edit sheet — swipe is an accelerator, never the only path,
-     so mouse/keyboard/screen-reader users lose nothing. */
+  /* Swipe-right auto-triggers Edit on release (safe, non-destructive — no
+     harm in firing straight from the gesture). Swipe-left only REVEALS
+     Delete; it does not fire on release — a destructive action needs its
+     own distinct confirming tap on the now-visible Delete button, so a
+     slightly-too-long drag-and-release can never silently delete a log
+     entry. Tap always still opens the edit sheet as the unconditional
+     baseline — swipe is an accelerator, never the only path, so mouse/
+     keyboard/screen-reader users lose nothing. Only one row can be
+     revealed at a time. */
   function wireSwipe(row, btn, onEdit, onDelete) {
     var startX=0, startY=0, dx=0, active=false, locked=null, suppressClick=false;
-    var THRESH=64;
-    function reset() { row.classList.remove("swiping"); btn.style.transform=""; dx=0; active=false; locked=null; }
-    btn.addEventListener("pointerdown", function (e){ startX=e.clientX; startY=e.clientY; dx=0; active=true; locked=null; });
+    var THRESH=64, REVEAL=96;
+    var under=row.querySelector(".swipeunder"), delBtn=row.querySelector(".sw-del");
+
+    function closeReveal() {
+      row.classList.remove("revealed"); btn.style.transform="";
+      under.setAttribute("aria-hidden","true"); delBtn.setAttribute("tabindex","-1"); delBtn.setAttribute("aria-hidden","true");
+      if (revealedRow===closeReveal) revealedRow=null;
+    }
+    function openReveal() {
+      if (revealedRow && revealedRow!==closeReveal) revealedRow();
+      row.classList.add("revealed"); btn.style.transform="translateX(-"+REVEAL+"px)";
+      under.setAttribute("aria-hidden","false"); delBtn.setAttribute("tabindex","0"); delBtn.setAttribute("aria-hidden","false");
+      revealedRow=closeReveal;
+    }
+    delBtn.addEventListener("click", function (e){ e.stopPropagation(); closeReveal(); onDelete(); });
+
+    btn.addEventListener("pointerdown", function (e){
+      if (revealedRow && revealedRow!==closeReveal) revealedRow();
+      startX=e.clientX; startY=e.clientY; dx = row.classList.contains("revealed") ? -REVEAL : 0; active=true; locked=null;
+    });
     btn.addEventListener("pointermove", function (e){
       if (!active) return;
       var mx=e.clientX-startX, my=e.clientY-startY;
       if (locked===null) { if (Math.abs(mx)<6 && Math.abs(my)<6) return; locked = Math.abs(mx)>Math.abs(my) ? "x" : "y"; }
       if (locked!=="x") return;
-      dx = Math.max(-96, Math.min(96, mx));
+      var base = row.classList.contains("revealed") ? -REVEAL : 0;
+      dx = Math.max(-REVEAL, Math.min(96, base+mx));
       row.classList.add("swiping"); btn.style.transform="translateX("+dx+"px)";
     });
     function end() {
-      if (!active) return; active=false;
+      if (!active) return; active=false; row.classList.remove("swiping");
       if (locked==="x") {
         suppressClick=true;
-        if (Math.abs(dx)>=THRESH) { buzz(20); if (dx<0) onDelete(); else onEdit(); }
+        if (dx<=-THRESH) { buzz(20); openReveal(); }
+        else if (dx>=THRESH) { buzz(20); closeReveal(); onEdit(); }
+        else { closeReveal(); }
       }
-      reset();
     }
     btn.addEventListener("pointerup", end);
-    btn.addEventListener("pointercancel", reset);
-    btn.addEventListener("pointerleave", function (){ if (active && locked!=="x") reset(); });
+    btn.addEventListener("pointercancel", function (){ active=false; row.classList.remove("swiping"); });
+    btn.addEventListener("pointerleave", function (){ if (active && locked!=="x") { active=false; row.classList.remove("swiping"); } });
     btn.addEventListener("click", function (e){
       if (suppressClick) { suppressClick=false; e.preventDefault(); return; }
+      if (row.classList.contains("revealed")) { closeReveal(); return; }
       onEdit();
     });
   }
@@ -787,7 +821,7 @@
     if (c.seenGestureTip || simpleOn()) return;
     c.seenGestureTip=true; persist();
     setTimeout(function (){ toast("Tip: hold Nurse for the other side, hold Diaper for dirty/mixed", "Got it"); }, 900);
-    setTimeout(function (){ toast("Tip: swipe an entry right to edit, left to delete", "Got it"); }, 5600);
+    setTimeout(function (){ toast("Tip: swipe an entry right to edit, left to reveal Delete", "Got it"); }, 5600);
   }
 
   /* ---------- sheet infra ---------- */
