@@ -337,14 +337,16 @@
      additionally honor the platform's text-size setting directly). */
   body.access .cta, body.access .field, body.access .chip { min-height: 56px; }
 
-  /* --- swipe rows: swipe left (content slides left) reveals Edit on the
-     right; swipe right (content slides right) reveals Delete on the left,
-     mirroring where the finger travel exposes each panel. --- */
+  /* --- swipe rows: swipe LEFT (content slides left) reveals Delete on the
+     right — the harder, more deliberate direction for a right-handed thumb,
+     so the destructive action isn't the easy accidental one. Swipe RIGHT
+     (content slides right, the easier direction) reveals the safe action,
+     Edit, on the left. --- */
   .rowwrap { position: relative; border-radius: 14px; overflow: hidden; touch-action: pan-y; }
   .swipeunder { position: absolute; inset: 0; display: flex; align-items: stretch; justify-content: space-between; }
   .swipeunder .sw-del, .swipeunder .sw-edit { flex: 1; display: flex; align-items: center; font-size: 13px; font-weight: 700; color: var(--panel-ink); }
-  .swipeunder .sw-del { justify-content: flex-start; padding-left: 18px; background: var(--feed); }
-  .swipeunder .sw-edit { justify-content: flex-end; padding-right: 18px; background: var(--dim); }
+  .swipeunder .sw-edit { justify-content: flex-start; padding-left: 18px; background: var(--dim); }
+  .swipeunder .sw-del { justify-content: flex-end; padding-right: 18px; background: var(--feed); }
   .row.swiping .rowbtn { transition: none; }
   .rowbtn { background: var(--bg); position: relative; z-index: 1; }
 
@@ -672,9 +674,9 @@
       var row=document.createElement("div"); row.className="row rowwrap";
       row.innerHTML =
         '<div class="swipeunder" aria-hidden="true">'+
-          '<span class="sw-del">Delete</span><span class="sw-edit">Edit</span>'+
+          '<span class="sw-edit">Edit</span><span class="sw-del">Delete</span>'+
         '</div>'+
-        '<button class="rowbtn" aria-label="Edit '+labelFor(ev)+' at '+fmtClock(ev.start)+' — or swipe left to edit, swipe right to delete">'+
+        '<button class="rowbtn" aria-label="Edit '+labelFor(ev)+' at '+fmtClock(ev.start)+' — or swipe right to edit, swipe left to delete">'+
           '<div class="glyph" style="color:'+colorFor(ev.type)+'">'+ICONS[ev.type]+'<span class="who" style="background:'+who.color+'">'+who.badge+'</span></div>'+
           '<div style="flex:1;min-width:0"><div class="t1">'+labelFor(ev)+' <span style="color:var(--faint);font-weight:600">· '+detailFor(ev)+'</span></div>'+
           '<div class="t2">'+who.name+'</div></div>'+
@@ -707,7 +709,7 @@
       if (!active) return; active=false;
       if (locked==="x") {
         suppressClick=true;
-        if (Math.abs(dx)>=THRESH) { buzz(20); if (dx<0) onEdit(); else onDelete(); }
+        if (Math.abs(dx)>=THRESH) { buzz(20); if (dx<0) onDelete(); else onEdit(); }
       }
       reset();
     }
@@ -774,18 +776,18 @@
   }
   function hideToast() { $("#toast").classList.remove("on"); }
 
-  /* One-time coach-mark for the long-press gestures — the corner "HOLD" label
-     alone tested as easy to miss. Skipped in Simple mode, where the advanced
-     gestures (other-side nursing, dirty/mixed diaper) are deliberately less
-     surfaced already. Shown once per caregiver, not once globally, so a
-     caregiver switching in later still gets it. */
+  /* One-time coach-marks for the app's non-obvious gestures — corner "HOLD"
+     labels alone tested as easy to miss, and swiping a row has no visible
+     affordance at all. Two short tips, not one long one. Skipped in Simple
+     mode, where these advanced interactions are deliberately less surfaced.
+     Shown once per caregiver, not once globally, so a caregiver switching in
+     later still gets them. */
   function maybeShowGestureTip() {
     var c=cur();
     if (c.seenGestureTip || simpleOn()) return;
     c.seenGestureTip=true; persist();
-    setTimeout(function (){
-      toast("Tip: hold Nurse for the other side, hold Diaper for dirty/mixed", "Got it");
-    }, 900);
+    setTimeout(function (){ toast("Tip: hold Nurse for the other side, hold Diaper for dirty/mixed", "Got it"); }, 900);
+    setTimeout(function (){ toast("Tip: swipe an entry right to edit, left to delete", "Got it"); }, 5600);
   }
 
   /* ---------- sheet infra ---------- */
@@ -870,7 +872,7 @@
   function solidsSheet() {
     openSheet('<h3 id="sheetTitle">'+t("solids")+'</h3><p class="sub"></p>'+
       '<input class="field" id="foodInput" placeholder="What did baby eat? (optional)" autocomplete="off" />'+whenControl()+
-      '<button class="cta" id="logSolid">'+t("log_solids")+'</button>');
+      '<div class="stickycta"><button class="cta" id="logSolid">'+t("log_solids")+'</button></div>');
     var body=$("#sheet"), resolve=wireWhen(body);
     body.querySelector("#logSolid").addEventListener("click", function (){ logSolids(body.querySelector("#foodInput").value.trim(), resolve()); });
   }
@@ -880,7 +882,7 @@
     var d=new Date(ev.start), hh=String(d.getHours()).padStart(2,"0"), mm=String(d.getMinutes()).padStart(2,"0");
     openSheet('<h3 id="sheetTitle">'+labelFor(ev)+'</h3><p class="sub">'+detailFor(ev)+' · '+careById(ev.by||"you").name+'</p>'+
       '<label class="lbl">Time</label><input class="field" id="etime" type="time" value="'+hh+":"+mm+'" />'+
-      '<div class="ctarow"><button class="cta danger" id="edel">Delete</button><button class="cta" id="esave">Save time</button></div>');
+      '<div class="stickycta ctarow"><button class="cta danger" id="edel">Delete</button><button class="cta" id="esave">Save time</button></div>');
     $("#esave").addEventListener("click", function (){ var v=$("#etime").value; if (v){ var p=v.split(":"), nd=new Date(ev.start); nd.setHours(+p[0],+p[1],0,0);
       if (nd.getTime()>Date.now()+60000) nd.setDate(nd.getDate()-1); var delta=nd.getTime()-ev.start; ev.start=nd.getTime(); if (ev.end) ev.end+=delta;
       db.events.sort(function (a,b){return a.start-b.start;}); persist(); render(); } closeSheet(); toast("Time updated", null, null, true); });
@@ -948,7 +950,7 @@
     openSheet('<h3 id="sheetTitle">Baby profile</h3><p class="sub">Used for greetings and (soon) growth charts.</p>'+
       '<input class="field" id="nm" value="'+(db.baby.name||"")+'" placeholder="Baby\'s name" autocomplete="off" />'+
       '<label class="lbl">Date of birth</label><input class="field" id="dob" type="date" value="'+dobVal+'" />'+
-      '<div class="ctarow"><button class="cta ghost" id="cxl">Cancel</button><button class="cta" id="sv">Save</button></div>');
+      '<div class="stickycta ctarow"><button class="cta ghost" id="cxl">Cancel</button><button class="cta" id="sv">Save</button></div>');
     $("#cxl").addEventListener("click", closeSheet);
     $("#sv").addEventListener("click", function (){ db.baby.name=$("#nm").value.trim()||"Baby"; var dob=$("#dob").value;
       db.baby.dob=dob?new Date(dob+"T12:00:00").getTime():null; persist(); render(); closeSheet(); toast("Profile saved", null, null, true); });
