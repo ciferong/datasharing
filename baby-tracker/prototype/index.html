@@ -6,8 +6,8 @@
   :root {
     --bg: #e9edf6; --bg-glow: #f6e9d6;
     --s0: #f2f4fa; --s1: #ffffff; --s2: #f6f8fd;
-    --text: #1a2138; --dim: #4a5470; --faint: #8b93ad;
-    --gold: #b97f1e; --gold-soft: #c98f2e; --gold-ink: #2a1c00;
+    --text: #1a2138; --dim: #4a5470; --faint: #586284;
+    --gold: #b97f1e; --gold-text: #8a5c14; --toast-accent: #b97f1e; --gold-soft: #c98f2e; --gold-ink: #2a1c00;
     --feed: #c94f22; --sleep: #5a49c8; --diaper: #0e8a70; --good: #178a5e;
     --glow: 0 0 0 transparent;
     --lit: inset 0 1px 0 rgba(255,255,255,.9);
@@ -15,12 +15,14 @@
     --sheet-shadow: 0 -14px 44px rgba(20,28,55,.20);
     --ring: rgba(185,127,30,.55);
     --scrim: rgba(20,26,48,.45);
+    --panel-ink: #ffffff;
+    --ts: 1;
   }
   @media (prefers-color-scheme: dark) { :root {
     --bg: #0e1424; --bg-glow: #1b2445;
     --s0: #121a2e; --s1: #182238; --s2: #1f2a44;
     --text: #eef1f8; --dim: #c4ccdf; --faint: #93a0bf;
-    --gold: #f0c07a; --gold-soft: #f7d9a8; --gold-ink: #241700;
+    --gold: #f0c07a; --gold-text: #f0c07a; --toast-accent: #8a5c14; --gold-soft: #f7d9a8; --gold-ink: #241700;
     --feed: #ff9e7d; --sleep: #a89bff; --diaper: #52cfb2; --good: #58d69e;
     --glow: 0 0 18px rgba(240,192,122,.28);
     --lit: inset 0 1px 0 rgba(255,255,255,.07);
@@ -28,24 +30,25 @@
     --sheet-shadow: 0 -16px 48px rgba(0,0,0,.55);
     --ring: rgba(240,192,122,.5);
     --scrim: rgba(4,8,18,.55);
+    --panel-ink: #241700;
   } }
   :root[data-theme="light"] {
     --bg: #e9edf6; --bg-glow: #f6e9d6; --s0: #f2f4fa; --s1: #ffffff; --s2: #f6f8fd;
-    --text: #1a2138; --dim: #4a5470; --faint: #8b93ad;
-    --gold: #b97f1e; --gold-soft: #c98f2e; --gold-ink: #2a1c00;
+    --text: #1a2138; --dim: #4a5470; --faint: #586284;
+    --gold: #b97f1e; --gold-text: #8a5c14; --toast-accent: #b97f1e; --gold-soft: #c98f2e; --gold-ink: #2a1c00;
     --feed: #c94f22; --sleep: #5a49c8; --diaper: #0e8a70; --good: #178a5e;
     --glow: 0 0 0 transparent; --lit: inset 0 1px 0 rgba(255,255,255,.9);
     --shadow: 0 8px 26px rgba(30,40,70,.10); --sheet-shadow: 0 -14px 44px rgba(20,28,55,.20);
-    --ring: rgba(185,127,30,.55); --scrim: rgba(20,26,48,.45);
+    --ring: rgba(185,127,30,.55); --scrim: rgba(20,26,48,.45); --panel-ink: #ffffff;
   }
   :root[data-theme="dark"] {
     --bg: #0e1424; --bg-glow: #1b2445; --s0: #121a2e; --s1: #182238; --s2: #1f2a44;
     --text: #eef1f8; --dim: #c4ccdf; --faint: #93a0bf;
-    --gold: #f0c07a; --gold-soft: #f7d9a8; --gold-ink: #241700;
+    --gold: #f0c07a; --gold-text: #f0c07a; --toast-accent: #8a5c14; --gold-soft: #f7d9a8; --gold-ink: #241700;
     --feed: #ff9e7d; --sleep: #a89bff; --diaper: #52cfb2; --good: #58d69e;
     --glow: 0 0 18px rgba(240,192,122,.28); --lit: inset 0 1px 0 rgba(255,255,255,.07);
     --shadow: 0 10px 30px rgba(0,0,0,.35); --sheet-shadow: 0 -16px 48px rgba(0,0,0,.55);
-    --ring: rgba(240,192,122,.5); --scrim: rgba(4,8,18,.55);
+    --ring: rgba(240,192,122,.5); --scrim: rgba(4,8,18,.55); --panel-ink: #241700;
   }
   /* time-of-day tint (dark ground only, subtle) */
   body[data-tod="dusk"]   { --bg-tint: rgba(90,73,200,.10); }
@@ -55,6 +58,7 @@
 
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
+  html { zoom: var(--ts, 1); }
   body {
     background:
       linear-gradient(180deg, var(--bg-tint, transparent), transparent 40%),
@@ -99,12 +103,15 @@
   .simplebanner button { all: unset; cursor: pointer; font-size: 13.5px; font-weight: 700; color: var(--diaper); padding: 8px; }
 
   /* ============ hero — the one answer ============ */
+  /* glow is reserved for "happening right now": the live hero number while a
+     timer runs, the timer banner + Stop, and the ribbon's now-marker. */
   .hero { display: flex; flex-direction: column; gap: 4px; }
   .hero .lead { font-size: 13px; font-weight: 600; color: var(--faint); letter-spacing: .02em; }
   .hero .big { font-size: 40px; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
-  .hero .big b { color: var(--gold); font-weight: 700; text-shadow: var(--glow); }
+  .hero .big b { color: var(--gold-text); font-weight: 700; }
+  .hero.live .big b { text-shadow: var(--glow); }
   .hero .next { font-size: 14.5px; color: var(--dim); margin-top: 2px; }
-  .hero .next b { color: var(--gold); font-weight: 700; }
+  .hero .next b { color: var(--gold-text); font-weight: 700; }
   .hero .why { font-size: 13px; color: var(--faint); }
 
   /* ============ ribbon — signature surface ============ */
@@ -117,8 +124,8 @@
     background: var(--s0); border-radius: 10px; box-shadow: var(--lit); }
   .tl-grid { position: absolute; top: 16px; height: 32px; width: 1px; background: color-mix(in srgb, var(--faint) 22%, transparent); }
   .tl-hour { position: absolute; top: 52px; transform: translateX(-50%); font-size: 12px; color: var(--faint); }
-  .tl-now { position: absolute; top: 6px; height: 50px; width: 2px; background: var(--gold); border-radius: 2px; z-index: 4; box-shadow: 0 0 10px var(--gold); }
-  .tl-moon { position: absolute; top: 0; width: 14px; height: 14px; transform: translateX(-50%); z-index: 5; color: var(--gold); filter: drop-shadow(0 0 6px var(--gold)); }
+  .tl-now { position: absolute; top: 6px; height: 50px; width: 2px; background: var(--gold-text); border-radius: 2px; z-index: 4; box-shadow: 0 0 10px var(--gold); }
+  .tl-moon { position: absolute; top: 0; width: 14px; height: 14px; transform: translateX(-50%); z-index: 5; color: var(--gold-text); filter: drop-shadow(0 0 6px var(--gold)); }
   .tl-bar { position: absolute; top: 20px; height: 24px; border-radius: 7px; z-index: 2; background: var(--sleep); }
   .tl-feed { position: absolute; top: 23px; width: 13px; height: 13px; border-radius: 50%; transform: translateX(-50%); z-index: 3;
     background: var(--feed); box-shadow: 0 0 0 2px var(--s1); }
@@ -142,7 +149,7 @@
   /* ============ recent — borderless list ============ */
   .recent h2 { margin: 0 0 6px; font-size: 13px; font-weight: 700; color: var(--dim);
     display: flex; justify-content: space-between; align-items: baseline; }
-  .recent h2 .seeall { all: unset; cursor: pointer; font-size: 13px; font-weight: 700; color: var(--gold); padding: 4px; }
+  .recent h2 .seeall { all: unset; cursor: pointer; font-size: 13px; font-weight: 700; color: var(--gold-text); padding: 4px; }
   .recent h2 .seeall:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 6px; }
   .row { display: flex; align-items: center; gap: 12px; padding: 10px 0; min-height: 52px; }
   .rowbtn { all: unset; cursor: pointer; display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; border-radius: 12px; min-height: 44px; }
@@ -195,8 +202,9 @@
   .act .lbl { color: var(--text); }
   .act .sub2 { font-size: 10.5px; font-weight: 600; color: var(--faint); margin-top: -3px; }
   .act.armed { background: color-mix(in srgb, var(--sleep) 22%, var(--s1)); box-shadow: var(--lit), var(--shadow), 0 0 14px color-mix(in srgb, var(--sleep) 40%, transparent); }
-  .app.simple ~ .actionbar .act, body.simple .act { min-height: 92px; font-size: 16px; }
-  body.simple .act svg { width: 34px; height: 34px; }
+  /* Simple mode = fewer things on screen (content reduction), independent of size.
+     "Larger text & controls" (body.access, via --ts zoom below) is the sizing lever —
+     a caregiver can have either, both, or neither. Don't infer one from the other. */
   body.simple .act .sub2 { display: none; }
 
   /* hold-progress hint on long-pressable buttons */
@@ -259,12 +267,16 @@
 
   .cta { all: unset; cursor: pointer; box-sizing: border-box; width: 100%; text-align: center; padding: 16px; border-radius: 16px;
     font-size: 16px; font-weight: 800; background: var(--gold); color: var(--gold-ink); min-height: 52px;
-    box-shadow: 0 0 16px color-mix(in srgb, var(--gold) 35%, transparent); }
+    box-shadow: var(--lit), var(--shadow); }
   .cta:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
   .cta:active { transform: translateY(1px); }
   .cta.ghost { background: var(--s2); color: var(--text); box-shadow: var(--lit); }
   .cta.danger { background: color-mix(in srgb, var(--feed) 13%, var(--s1)); color: var(--feed); box-shadow: var(--lit); }
   .ctarow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  /* pins the primary action to the bottom of the sheet's scrollport, so a
+     thumb never has to travel up past a scrolled stepper to confirm a log */
+  .stickycta { position: sticky; bottom: -1px; margin: 14px -20px -1px; padding: 14px 20px calc(6px + env(safe-area-inset-bottom));
+    background: linear-gradient(0deg, var(--s1) 72%, transparent); }
 
   .unitrow { display: flex; gap: 8px; margin-bottom: 14px; }
   .unitrow button { all: unset; cursor: pointer; padding: 10px 16px; border-radius: 11px; font-size: 13.5px; font-weight: 700;
@@ -278,7 +290,7 @@
   .member .rl { font-size: 13px; color: var(--faint); }
   .member .badges { display: flex; gap: 6px; margin-top: 3px; }
   .member .tag { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; background: var(--s2); color: var(--dim); }
-  .logas { all: unset; cursor: pointer; font-size: 13px; font-weight: 700; color: var(--gold);
+  .logas { all: unset; cursor: pointer; font-size: 13px; font-weight: 700; color: var(--gold-text);
     padding: 11px 13px; border-radius: 11px; box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--gold) 40%, transparent); min-height: 44px; box-sizing: border-box; }
   .logas[data-cur="1"] { color: var(--good); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--good) 45%, transparent); cursor: default; }
   .logas:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
@@ -286,7 +298,7 @@
   .invite { display: flex; align-items: center; gap: 10px; background: var(--s2); box-shadow: var(--lit);
     border-radius: 14px; padding: 13px 15px; margin-bottom: 8px; }
   .invite code { flex: 1; font-size: 14px; font-weight: 700; letter-spacing: .04em; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
-  .invite button { all: unset; cursor: pointer; font-size: 13.5px; font-weight: 700; color: var(--gold); padding: 10px; min-height: 44px; box-sizing: border-box; }
+  .invite button { all: unset; cursor: pointer; font-size: 13.5px; font-weight: 700; color: var(--gold-text); padding: 10px; min-height: 44px; box-sizing: border-box; }
   .freeline { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--good); font-weight: 650; margin: 2px 0 6px; }
 
   .toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; }
@@ -311,15 +323,30 @@
     transition: opacity .2s ease, transform .2s ease; max-width: 92vw; }
   .toast.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
   .toast .chk { width: 22px; height: 22px; border-radius: 50%; background: var(--good); color: #fff; display: grid; place-items: center; flex: none; font-size: 13px; }
-  .toast button { all: unset; cursor: pointer; color: var(--gold); font-weight: 800; padding: 8px; margin: -8px -4px; }
+  .toast button { all: unset; cursor: pointer; color: var(--toast-accent); font-weight: 800; padding: 8px; margin: -8px -4px; }
   .toast button:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 4px; }
 
   .foot { text-align: center; font-size: 12px; color: var(--faint); margin-top: 2px; }
   .foot button { all: unset; cursor: pointer; color: var(--dim); text-decoration: underline; padding: 6px; }
 
-  body.simple .hero .big { font-size: 34px; }
   body.simple .ribbon, body.simple .strip, body.simple .hero .why { display: none; }
-  body.simple .row .t1 { font-size: 17px; }
+
+  /* Accessible mode — a true size lever, independent of Simple mode. Scales
+     type, icons, targets and spacing together via zoom (this also stands in
+     for OS-level dynamic type in this web prototype; a native build should
+     additionally honor the platform's text-size setting directly). */
+  body.access .cta, body.access .field, body.access .chip { min-height: 56px; }
+
+  /* --- swipe rows: swipe left (content slides left) reveals Edit on the
+     right; swipe right (content slides right) reveals Delete on the left,
+     mirroring where the finger travel exposes each panel. --- */
+  .rowwrap { position: relative; border-radius: 14px; overflow: hidden; touch-action: pan-y; }
+  .swipeunder { position: absolute; inset: 0; display: flex; align-items: stretch; justify-content: space-between; }
+  .swipeunder .sw-del, .swipeunder .sw-edit { flex: 1; display: flex; align-items: center; font-size: 13px; font-weight: 700; color: var(--panel-ink); }
+  .swipeunder .sw-del { justify-content: flex-start; padding-left: 18px; background: var(--feed); }
+  .swipeunder .sw-edit { justify-content: flex-end; padding-right: 18px; background: var(--dim); }
+  .row.swiping .rowbtn { transition: none; }
+  .rowbtn { background: var(--bg); position: relative; z-index: 1; }
 
   @media (prefers-reduced-motion: reduce) { * { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
 </style>
@@ -439,10 +466,17 @@
       never_paywalled:"Libre magpakailanman — hindi kailanman babayaran ang pagbabahagi." }
   };
 
+  /* `simple` (fewer things on screen) and `access` (larger text & controls) are
+     independent — neither is inferred from caregiver identity. Grace defaults to
+     Simple because she asked for less clutter, not because bigger controls are
+     assumed from being "the helper"; either caregiver can turn `access` on. */
+  /* avatar fill colors are fixed (not theme-reactive) and paired with white
+     initials, so each is picked to clear 4.5:1 against white on its own —
+     these are deliberately a shade darker than the matching category hue. */
   var DEFAULT_CARE = [
-    { id:"you",   name:"You",   badge:"Y", color:"#b97f1e", role:"Owner",   simple:false, lang:"en" },
-    { id:"grace", name:"Grace", badge:"G", color:"#0e8a70", role:"Helper",  simple:true,  lang:"tl" },
-    { id:"sam",   name:"Sam",   badge:"S", color:"#5a49c8", role:"Partner", simple:false, lang:"en" }
+    { id:"you",   name:"You",   badge:"Y", color:"#8a5c14", role:"Owner",   simple:false, access:false, lang:"en" },
+    { id:"grace", name:"Grace", badge:"G", color:"#0b7259", role:"Helper",  simple:true,  access:false, lang:"tl" },
+    { id:"sam",   name:"Sam",   badge:"S", color:"#5a49c8", role:"Partner", simple:false, access:false, lang:"en" }
   ];
 
   var db = {
@@ -459,6 +493,7 @@
   function buzz(p) { try { if (navigator.vibrate) navigator.vibrate(p || 18); } catch (e) {} }
 
   if (!db.care) db.care = DEFAULT_CARE.map(function (c) { return Object.assign({}, c); });
+  db.care.forEach(function (c) { if (c.access == null) c.access = false; });
   if (!db.pref.stats) db.pref.stats = ["sleep","diapers","feedVol"];
   if (db.events === null) { db.baby = { name:"Baby", dob: Date.now() - 86400000 * 84 }; db.events = seed(); persist(); }
   if (!db.baby) db.baby = { name:"Baby", dob:null };
@@ -481,6 +516,7 @@
   function careById(id) { return db.care.filter(function (c){ return c.id===id; })[0] || db.care[0]; }
   function lang() { return cur().lang || "en"; }
   function simpleOn() { return !!cur().simple; }
+  function accessOn() { return !!cur().access; }
   function t(key) { var L=I18N[lang()]||I18N.en; return L[key]!=null?L[key]:(I18N.en[key]!=null?I18N.en[key]:key); }
 
   function fmtClock(ts) { return new Date(ts).toLocaleTimeString([], { hour:"numeric", minute:"2-digit" }); }
@@ -530,6 +566,8 @@
   function render() {
     document.body.dataset.tod = tod();
     document.body.classList.toggle("simple", simpleOn());
+    document.body.classList.toggle("access", accessOn());
+    document.documentElement.style.setProperty("--ts", accessOn() ? "1.18" : "1");
     var hh=new Date().getHours();
     $("#greet").textContent = hh<5?t("g_night"):hh<12?t("g_morning"):hh<17?t("g_afternoon"):hh<22?t("g_evening"):t("g_night");
     $("#babyName").textContent = db.baby.name||"Baby";
@@ -548,13 +586,17 @@
   function renderWho() {
     var c=cur(); $("#whoAv").style.background=c.color; $("#whoAv").textContent=c.badge; $("#whoNm").textContent=c.name;
     var sb=$("#simpleBanner");
-    if (simpleOn()) { sb.classList.add("on"); $("#sbAv").style.background=c.color; $("#sbAv").textContent=c.badge;
-      $("#sbTxt").textContent=t("simple_mode")+" — "+t("logging_as")+" "+c.name; $("#sbBack").textContent=t("switch_back"); }
-    else sb.classList.remove("on");
+    if (simpleOn() || accessOn()) {
+      var label = simpleOn() && accessOn() ? t("simple_mode")+" + larger text"
+        : simpleOn() ? t("simple_mode") : "Larger text";
+      sb.classList.add("on"); $("#sbAv").style.background=c.color; $("#sbAv").textContent=c.badge;
+      $("#sbTxt").textContent=label+" — "+t("logging_as")+" "+c.name; $("#sbBack").textContent=t("switch_back");
+    } else sb.classList.remove("on");
   }
 
   function renderHero() {
     var big=$("#heroBig"), lead=$("#heroLead"), next=$("#heroNext"), why=$("#heroWhy");
+    $(".hero").classList.toggle("live", !!db.timer);
     if (db.timer) {
       lead.textContent = db.timer.type==="sleep" ? t("asleep") : t("nursing")+" · "+(db.timer.side==="R"?t("right"):t("left"));
       big.innerHTML = '<b>'+dur(Date.now()-db.timer.start)+'</b>';
@@ -627,16 +669,54 @@
     if (!evs.length){ list.innerHTML='<div class="empty"><div class="big">🌙</div>'+t("nothing")+'<br>'+t("tapbelow")+'</div>'; return; }
     evs.forEach(function (ev){
       var who=careById(ev.by||"you");
-      var row=document.createElement("div"); row.className="row";
+      var row=document.createElement("div"); row.className="row rowwrap";
       row.innerHTML =
-        '<button class="rowbtn" aria-label="Edit '+labelFor(ev)+' at '+fmtClock(ev.start)+'">'+
+        '<div class="swipeunder" aria-hidden="true">'+
+          '<span class="sw-del">Delete</span><span class="sw-edit">Edit</span>'+
+        '</div>'+
+        '<button class="rowbtn" aria-label="Edit '+labelFor(ev)+' at '+fmtClock(ev.start)+' — or swipe left to edit, swipe right to delete">'+
           '<div class="glyph" style="color:'+colorFor(ev.type)+'">'+ICONS[ev.type]+'<span class="who" style="background:'+who.color+'">'+who.badge+'</span></div>'+
           '<div style="flex:1;min-width:0"><div class="t1">'+labelFor(ev)+' <span style="color:var(--faint);font-weight:600">· '+detailFor(ev)+'</span></div>'+
           '<div class="t2">'+who.name+'</div></div>'+
           '<div class="when tnum">'+fmtClock(ev.start)+'<br><span class="ago">'+agoStr(ev.start)+' '+ (lang()==="tl"?"":"ago") +'</span></div>'+
         '</button>';
-      row.querySelector(".rowbtn").addEventListener("click", function (){ editSheet(ev.id); });
+      var btn=row.querySelector(".rowbtn");
+      wireSwipe(row, btn, function (){ editSheet(ev.id); }, function (){ removeEvent(ev.id); });
       list.appendChild(row);
+    });
+  }
+
+  /* Swipe-left reveals Edit (right panel), swipe-right reveals Delete (left
+     panel, routes through the existing Undo-backed removeEvent). Tap always
+     still opens the edit sheet — swipe is an accelerator, never the only path,
+     so mouse/keyboard/screen-reader users lose nothing. */
+  function wireSwipe(row, btn, onEdit, onDelete) {
+    var startX=0, startY=0, dx=0, active=false, locked=null, suppressClick=false;
+    var THRESH=64;
+    function reset() { row.classList.remove("swiping"); btn.style.transform=""; dx=0; active=false; locked=null; }
+    btn.addEventListener("pointerdown", function (e){ startX=e.clientX; startY=e.clientY; dx=0; active=true; locked=null; });
+    btn.addEventListener("pointermove", function (e){
+      if (!active) return;
+      var mx=e.clientX-startX, my=e.clientY-startY;
+      if (locked===null) { if (Math.abs(mx)<6 && Math.abs(my)<6) return; locked = Math.abs(mx)>Math.abs(my) ? "x" : "y"; }
+      if (locked!=="x") return;
+      dx = Math.max(-96, Math.min(96, mx));
+      row.classList.add("swiping"); btn.style.transform="translateX("+dx+"px)";
+    });
+    function end() {
+      if (!active) return; active=false;
+      if (locked==="x") {
+        suppressClick=true;
+        if (Math.abs(dx)>=THRESH) { buzz(20); if (dx<0) onEdit(); else onDelete(); }
+      }
+      reset();
+    }
+    btn.addEventListener("pointerup", end);
+    btn.addEventListener("pointercancel", reset);
+    btn.addEventListener("pointerleave", function (){ if (active && locked!=="x") reset(); });
+    btn.addEventListener("click", function (e){
+      if (suppressClick) { suppressClick=false; e.preventDefault(); return; }
+      onEdit();
     });
   }
 
@@ -694,6 +774,20 @@
   }
   function hideToast() { $("#toast").classList.remove("on"); }
 
+  /* One-time coach-mark for the long-press gestures — the corner "HOLD" label
+     alone tested as easy to miss. Skipped in Simple mode, where the advanced
+     gestures (other-side nursing, dirty/mixed diaper) are deliberately less
+     surfaced already. Shown once per caregiver, not once globally, so a
+     caregiver switching in later still gets it. */
+  function maybeShowGestureTip() {
+    var c=cur();
+    if (c.seenGestureTip || simpleOn()) return;
+    c.seenGestureTip=true; persist();
+    setTimeout(function (){
+      toast("Tip: hold Nurse for the other side, hold Diaper for dirty/mixed", "Got it");
+    }, 900);
+  }
+
   /* ---------- sheet infra ---------- */
   var lastFocus=null;
   function openSheet(html) {
@@ -749,7 +843,8 @@
         '<div class="presets" id="presets">'+presets.map(function (p){ return '<button data-p="'+p+'" aria-pressed="'+(p===amount)+'">'+p+'</button>'; }).join("")+'</div>'+
         '<div class="stepper"><div class="amt"><span id="amtV" class="tnum disp">'+fmtAmt(amount)+'</span> <small>'+unit+'</small></div>'+
         '<div class="pm"><button class="rnd" id="minus" aria-label="less">−</button><button class="rnd" id="plus" aria-label="more">+</button></div></div>'+
-        whenControl()+'<button class="cta" id="logBottle">'+t("log_bottle")+'</button>';
+        whenControl()+
+        '<div class="stickycta"><button class="cta" id="logBottle">'+t("log_bottle")+'</button></div>';
       function fmtAmt(a){ return unit==="oz"?String(+(+a).toFixed(2)):a; }
       function upd(){ $("#amtV").textContent=fmtAmt(amount); body.querySelectorAll("#presets [data-p]").forEach(function (x){ x.setAttribute("aria-pressed", (+x.dataset.p)===amount?"true":"false"); }); }
       body.querySelector("#minus").addEventListener("click", function (){ amount=Math.max(step,+(amount-step).toFixed(2)); upd(); });
@@ -807,7 +902,8 @@
       '<p class="hint">Send this to your partner or helper; they join the same baby instantly.</p>'+
       '<button class="cta ghost" id="simLive2">👶 Simulate a live update from Grace</button>');
     $("#sheet").querySelectorAll("[data-log]").forEach(function (b){ b.addEventListener("click", function (){ if (b.dataset.log===db.cur) return;
-      db.cur=b.dataset.log; persist(); render(); closeSheet(); toast("Now logging as "+cur().name+(simpleOn()?" · simple mode":""), null, null, true); }); });
+      db.cur=b.dataset.log; persist(); render(); closeSheet(); toast("Now logging as "+cur().name+(simpleOn()?" · simple mode":""), null, null, true);
+      maybeShowGestureTip(); }); });
     $("#copyInv").addEventListener("click", function (){ try { navigator.clipboard.writeText("lull.family/7K9-QX"); } catch (e){} toast("Invite copied", null, null, true); });
     $("#simLive2").addEventListener("click", function (){ closeSheet(); simulateHelper(); });
   }
@@ -828,7 +924,8 @@
       '<p class="hint">Formula parents: "Fed today". Night-duty: "Right now".</p>'+
       '<h4>Log solids</h4><button class="cta ghost" id="goSolids" style="margin-bottom:6px">'+t("solids")+'…</button>'+
       '<h4>Accessibility &amp; language</h4>'+
-      '<div class="toggle"><div><div class="tl">'+t("simple_mode")+'</div><div class="td">Bigger buttons, fewer distractions.</div></div><button class="sw" id="swSimple" aria-pressed="'+me.simple+'" role="switch" aria-label="Simple mode"></button></div>'+
+      '<div class="toggle"><div><div class="tl">'+t("simple_mode")+'</div><div class="td">Fewer things on screen — hides the rhythm ribbon and stats.</div></div><button class="sw" id="swSimple" aria-pressed="'+me.simple+'" role="switch" aria-label="Simple mode"></button></div>'+
+      '<div class="toggle"><div><div class="tl">Larger text &amp; controls</div><div class="td">Bigger type and tap targets throughout — independent of Simple mode.</div></div><button class="sw" id="swAccess" aria-pressed="'+me.access+'" role="switch" aria-label="Larger text and controls"></button></div>'+
       '<div class="toggle"><div><div class="tl">Language</div><div class="td">Demo: English / Tagalog (placeholder — needs native review).</div></div>'+
         '<div class="unitrow" style="margin:0"><button id="langEn" aria-pressed="'+(me.lang!=="tl")+'">EN</button><button id="langTl" aria-pressed="'+(me.lang==="tl")+'">TL</button></div></div>'+
       '<h4>More (coming soon)</h4><div class="picker">'+["Pump","Temp","Meds","Growth","Bath","Export"].map(function (m){ return '<button data-soon="'+m+'">'+m+'</button>'; }).join("")+'</div>');
@@ -840,6 +937,7 @@
       render(); }); });
     $("#goSolids").addEventListener("click", function (){ solidsSheet(); });
     $("#swSimple").addEventListener("click", function (){ me.simple=!me.simple; persist(); this.setAttribute("aria-pressed", me.simple); render(); });
+    $("#swAccess").addEventListener("click", function (){ me.access=!me.access; persist(); this.setAttribute("aria-pressed", me.access); render(); });
     $("#langEn").addEventListener("click", function (){ me.lang="en"; persist(); render(); settingsSheet(); });
     $("#langTl").addEventListener("click", function (){ me.lang="tl"; persist(); render(); settingsSheet(); });
     $("#sheet").querySelectorAll("[data-soon]").forEach(function (b){ b.addEventListener("click", function (){ toast('"'+b.dataset.soon+'" is on the roadmap ✨'); }); });
@@ -876,7 +974,9 @@
   $("#babyBtn").addEventListener("click", babySheet);
   $("#whoChip").addEventListener("click", shareSheet);
   $("#setBtn").addEventListener("click", settingsSheet);
-  $("#sbBack").addEventListener("click", function (){ db.cur="you"; persist(); render(); });
+  $("#sbBack").addEventListener("click", function (){
+    if (db.cur==="you") { cur().simple=false; cur().access=false; } else { db.cur="you"; }
+    persist(); render(); });
   $("#seeAll").addEventListener("click", function (){ showAll=!showAll; renderList(); });
   $("#resetBtn").addEventListener("click", function (){ if (!confirm("Reset the demo? This clears all data on this device.")) return;
     Object.keys(K).forEach(function (k){ localStorage.removeItem(K[k]); });
@@ -885,6 +985,7 @@
     db.baby={ name:"Baby", dob: Date.now()-86400000*84 }; db.timer=null; db.events=seed(); persist(); render(); toast("Demo reset", null, null, true); });
 
   render();
+  maybeShowGestureTip();
   setInterval(tickTimer, 1000);
   setInterval(render, 60000);
 })();
