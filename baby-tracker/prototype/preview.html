@@ -1,0 +1,1331 @@
+<title>Lull — Baby Tracker (Prototype)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+<style>
+  /* ============ tokens — "cozy dawn": warmer, rounder, friendlier than the
+     original midnight-luxury pass, still calm enough to use at 3am. Every
+     text/fill pairing below is WCAG-verified (>=4.5:1 normal text, checked
+     against every surface it actually sits on — see commit history for the
+     computed ratios), not eyeballed. ============ */
+  :root {
+    --bg: #f6eef9; --bg-glow: #ffe9d6;
+    --s0: #f5eefb; --s1: #fffefb; --s2: #faf3ff;
+    --text: #2b1f3d; --dim: #5b4a72; --faint: #6a5a84;
+    --gold: #f0713a; --gold-text: #bd4515; --toast-accent: #f0713a; --gold-soft: #ff8f5c; --gold-ink: #2a1200;
+    --feed: #ff7a45; --sleep: #8a6ff0; --diaper: #2bc48a; --good: #0c6f49;
+    --panel-ink-del: #2a1200; --panel-ink-edit: #fff8f0;
+    --glow: 0 0 0 transparent;
+    --lit: inset 0 1px 0 rgba(255,255,255,.9);
+    --shadow: 0 8px 26px rgba(60,40,80,.10);
+    --sheet-shadow: 0 -14px 44px rgba(50,30,70,.18);
+    --ring: rgba(189,69,21,.55);
+    --scrim: rgba(40,26,55,.45);
+    --ts: 1;
+  }
+  @media (prefers-color-scheme: dark) { :root {
+    --bg: #181022; --bg-glow: #2a1c3f;
+    --s0: #1f1629; --s1: #221830; --s2: #2b1f3d;
+    --text: #f7f0fb; --dim: #d3c3e6; --faint: #a996c2;
+    --gold: #ffb37a; --gold-text: #ffb37a; --toast-accent: #bd4515; --gold-soft: #ffc99a; --gold-ink: #2a1200;
+    --feed: #ffab7a; --sleep: #b6a3ff; --diaper: #6fe0b8; --good: #58d69e;
+    --panel-ink-del: #2a1200; --panel-ink-edit: #2a1200;
+    --glow: 0 0 18px rgba(255,179,122,.3);
+    --lit: inset 0 1px 0 rgba(255,255,255,.07);
+    --shadow: 0 10px 30px rgba(0,0,0,.4);
+    --sheet-shadow: 0 -16px 48px rgba(0,0,0,.55);
+    --ring: rgba(255,179,122,.5);
+    --scrim: rgba(8,4,14,.6);
+  } }
+  :root[data-theme="light"] {
+    --bg: #f6eef9; --bg-glow: #ffe9d6; --s0: #f5eefb; --s1: #fffefb; --s2: #faf3ff;
+    --text: #2b1f3d; --dim: #5b4a72; --faint: #6a5a84;
+    --gold: #f0713a; --gold-text: #bd4515; --toast-accent: #f0713a; --gold-soft: #ff8f5c; --gold-ink: #2a1200;
+    --feed: #ff7a45; --sleep: #8a6ff0; --diaper: #2bc48a; --good: #0c6f49;
+    --panel-ink-del: #2a1200; --panel-ink-edit: #fff8f0;
+    --glow: 0 0 0 transparent; --lit: inset 0 1px 0 rgba(255,255,255,.9);
+    --shadow: 0 8px 26px rgba(60,40,80,.10); --sheet-shadow: 0 -14px 44px rgba(50,30,70,.18);
+    --ring: rgba(189,69,21,.55); --scrim: rgba(40,26,55,.45);
+  }
+  :root[data-theme="dark"] {
+    --bg: #181022; --bg-glow: #2a1c3f; --s0: #1f1629; --s1: #221830; --s2: #2b1f3d;
+    --text: #f7f0fb; --dim: #d3c3e6; --faint: #a996c2;
+    --gold: #ffb37a; --gold-text: #ffb37a; --toast-accent: #bd4515; --gold-soft: #ffc99a; --gold-ink: #2a1200;
+    --feed: #ffab7a; --sleep: #b6a3ff; --diaper: #6fe0b8; --good: #58d69e;
+    --panel-ink-del: #2a1200; --panel-ink-edit: #2a1200;
+    --glow: 0 0 18px rgba(255,179,122,.3); --lit: inset 0 1px 0 rgba(255,255,255,.07);
+    --shadow: 0 10px 30px rgba(0,0,0,.4); --sheet-shadow: 0 -16px 48px rgba(0,0,0,.55);
+    --ring: rgba(255,179,122,.5); --scrim: rgba(8,4,14,.6);
+  }
+  /* time-of-day tint (dark ground only, subtle) */
+  body[data-tod="dusk"]   { --bg-tint: rgba(138,111,240,.10); }
+  body[data-tod="night"]  { --bg-tint: rgba(30,20,60,.0); }
+  body[data-tod="predawn"]{ --bg-tint: rgba(255,179,122,.07); }
+  body[data-tod="day"]    { --bg-tint: rgba(255,179,122,.05); }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  html { zoom: var(--ts, 1); }
+  body {
+    background:
+      linear-gradient(180deg, var(--bg-tint, transparent), transparent 40%),
+      radial-gradient(130% 55% at 50% -10%, var(--bg-glow), transparent 58%),
+      var(--bg);
+    color: var(--text);
+    font-family: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased; line-height: 1.45; min-height: 100dvh;
+  }
+  .disp { font-family: ui-rounded, "SF Pro Rounded", -apple-system, system-ui, sans-serif; }
+  .tnum { font-variant-numeric: tabular-nums; }
+  button { touch-action: manipulation; }
+
+  .app { max-width: 480px; margin: 0 auto; min-height: 100dvh;
+    padding: 20px 22px calc(206px + env(safe-area-inset-bottom));
+    display: flex; flex-direction: column; gap: 26px; }
+
+  /* ============ header — quiet ============ */
+  header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .baby-btn { all: unset; cursor: pointer; display: flex; flex-direction: column; gap: 2px; border-radius: 14px; min-height: 44px; justify-content: center; }
+  .baby-btn .hi { font-size: 15px; color: var(--faint); }
+  .baby-btn .nm { font-size: 23px; font-weight: 700; letter-spacing: -.01em; }
+  .baby-btn .nm .age { font-size: 14px; font-weight: 600; color: var(--faint); margin-left: 6px; }
+  .baby-btn:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+  .hbtns { display: flex; gap: 6px; align-items: center; }
+  .whochip { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+    padding: 9px 14px 9px 9px; border-radius: 24px; background: var(--s1); box-shadow: var(--lit), var(--shadow);
+    font-size: 14.5px; font-weight: 700; min-height: 46px; }
+  .whochip:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  .av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
+    font-size: 13px; font-weight: 800; color: #fff; flex: none; }
+  .icobtn { all: unset; cursor: pointer; width: 46px; height: 46px; border-radius: 18px; display: grid; place-items: center;
+    color: var(--dim); transition: transform .3s cubic-bezier(.34,1.4,.64,1); }
+  .icobtn:active { transform: scale(.9) rotate(-6deg); }
+  .icobtn svg { width: 23px; height: 23px; }
+  .icobtn:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+  .simplebanner { display: none; align-items: center; gap: 10px;
+    background: color-mix(in srgb, var(--diaper) 14%, var(--s1));
+    border-radius: 18px; padding: 13px 15px; box-shadow: var(--lit); }
+  .simplebanner.on { display: flex; }
+  .simplebanner .txt { flex: 1; font-size: 15px; font-weight: 600; }
+  .simplebanner button { all: unset; cursor: pointer; font-size: 15px; font-weight: 700; color: var(--diaper); padding: 8px; }
+
+  /* ============ hero — the one answer ============ */
+  /* glow is reserved for "happening right now": the live hero number while a
+     timer runs, the timer banner + Stop, and the ribbon's now-marker. */
+  .hero { display: flex; flex-direction: column; gap: 5px; }
+  .hero .lead { font-size: 15px; font-weight: 600; color: var(--faint); letter-spacing: .02em; }
+  .hero .big { font-size: 46px; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .big b { color: var(--gold-text); font-weight: 700; }
+  .hero.live .big b { text-shadow: var(--glow); }
+  .hero .next { font-size: 16px; color: var(--dim); margin-top: 2px; }
+  .hero .next b { color: var(--gold-text); font-weight: 700; }
+  .hero .why { font-size: 14px; color: var(--faint); }
+
+  /* ============ predict — two side-by-side "do this next" tiles ============
+     Both predictions get equal, large visual weight now — the manual row
+     below is explicitly secondary, deferring to whatever's predicted. */
+  .predict-group { display: flex; flex-direction: column; gap: 10px; }
+  .predict-label { font-size: 13px; font-weight: 700; letter-spacing: .02em; color: var(--faint); padding-left: 2px; }
+  .predict-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .predict-tiles.single { grid-template-columns: 1fr; }
+  .predict-tile { all: unset; cursor: pointer; box-sizing: border-box; display: flex; flex-direction: column;
+    align-items: flex-start; gap: 9px; padding: 16px; border-radius: 24px; min-height: 110px;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--gold) 16%, var(--s1)), var(--s1));
+    box-shadow: var(--lit), var(--shadow); transition: transform .32s cubic-bezier(.34,1.4,.64,1); }
+  .predict-tile:active { transform: scale(.96); }
+  .predict-tile:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  .predict-tile.pop { animation: predictpop .5s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes predictpop { 0% { transform: scale(.9); } 55% { transform: scale(1.035); } 100% { transform: scale(1); } }
+  .predict-tile-ic { width: 40px; height: 40px; border-radius: 14px; display: grid; place-items: center;
+    background: color-mix(in srgb, currentColor 18%, var(--s1)); }
+  .predict-tile-ic svg { width: 21px; height: 21px; }
+  .predict-tile-lead { font-size: 12px; font-weight: 700; color: var(--gold-text); }
+  .predict-tile-msg { font-size: 16px; font-weight: 700; color: var(--text); line-height: 1.25; text-align: left; }
+  body.simple .predict-tile-msg { font-size: 18px; }
+  body.simple .predict-tile { min-height: 120px; }
+
+  /* ============ ribbon — signature surface ============ */
+  .ribbon { background: var(--s1); border-radius: 26px; padding: 20px 18px 16px; box-shadow: var(--lit), var(--shadow); }
+  .ribbon .rhead { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 13px; }
+  .ribbon .rhead h2 { margin: 0; font-size: 15px; font-weight: 700; color: var(--dim); }
+  .ribbon .rhead .meta { font-size: 14px; color: var(--faint); }
+  .timeline { position: relative; height: 68px; }
+  .tl-track { position: absolute; left: 0; right: 0; top: 16px; height: 32px;
+    background: var(--s0); border-radius: 16px; box-shadow: var(--lit); }
+  .tl-grid { position: absolute; top: 16px; height: 32px; width: 1px; background: color-mix(in srgb, var(--faint) 22%, transparent); }
+  .tl-hour { position: absolute; top: 52px; transform: translateX(-50%); font-size: 13px; color: var(--faint); }
+  .tl-now { position: absolute; top: 6px; height: 50px; width: 2px; background: var(--gold-text); border-radius: 2px; z-index: 4; box-shadow: 0 0 10px var(--gold); }
+  .tl-moon { position: absolute; top: 0; width: 14px; height: 14px; transform: translateX(-50%); z-index: 5; color: var(--gold-text); filter: drop-shadow(0 0 6px var(--gold)); }
+  .tl-bar { position: absolute; top: 20px; height: 24px; border-radius: 7px; z-index: 2; background: var(--sleep); }
+  .tl-feed { position: absolute; top: 23px; width: 13px; height: 13px; border-radius: 50%; transform: translateX(-50%); z-index: 3;
+    background: var(--feed); box-shadow: 0 0 0 2px var(--s1); }
+  .tl-diaper { position: absolute; top: 24px; width: 11px; height: 11px; transform: translateX(-50%) rotate(45deg); z-index: 3;
+    background: var(--diaper); border-radius: 3px; box-shadow: 0 0 0 2px var(--s1); }
+  .legend { display: flex; gap: 18px; margin-top: 14px; flex-wrap: wrap; }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; font-size: 14px; color: var(--dim); }
+  .legend .lg-feed { width: 11px; height: 11px; border-radius: 50%; background: var(--feed); }
+  .legend .lg-sleep { width: 15px; height: 9px; border-radius: 3px; background: var(--sleep); }
+  .legend .lg-diaper { width: 10px; height: 10px; border-radius: 2.5px; background: var(--diaper); transform: rotate(45deg); }
+
+  /* quiet stats strip — no cards */
+  .strip { display: flex; gap: 12px; justify-content: space-between; }
+  .stat { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .stat .k { font-size: 13.5px; font-weight: 600; color: var(--faint); display: flex; align-items: center; gap: 6px; }
+  .stat .k i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .stat .v { font-size: 21px; font-weight: 700; letter-spacing: -.01em; }
+  .stat .v small { font-size: 13px; color: var(--dim); font-weight: 600; }
+  .stat .s { font-size: 13px; color: var(--faint); }
+
+  /* ============ recent — borderless list ============ */
+  .recent h2 { margin: 0 0 8px; font-size: 15px; font-weight: 700; color: var(--dim);
+    display: flex; justify-content: space-between; align-items: baseline; }
+  .recent h2 .seeall { all: unset; cursor: pointer; font-size: 15px; font-weight: 700; color: var(--gold-text); padding: 4px; }
+  .recent h2 .seeall:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 6px; }
+  .row { display: flex; align-items: center; gap: 13px; padding: 13px 0; min-height: 60px; }
+  .rowbtn { all: unset; cursor: pointer; display: flex; align-items: center; gap: 13px; flex: 1; min-width: 0; border-radius: 16px; min-height: 48px; }
+  .rowbtn:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+  .glyph { width: 44px; height: 44px; border-radius: 17px; flex: none; display: grid; place-items: center; position: relative;
+    background: var(--s1); box-shadow: var(--lit), var(--shadow); }
+  .glyph svg { width: 22px; height: 22px; }
+  .glyph .who { position: absolute; right: -5px; bottom: -5px; width: 19px; height: 19px; border-radius: 50%;
+    display: grid; place-items: center; font-size: 10px; font-weight: 800; color: #fff; box-shadow: 0 0 0 2px var(--bg); }
+  .row .t1 { font-size: 17px; font-weight: 650; }
+  .row .t2 { font-size: 14.5px; color: var(--faint); }
+  .row .when { font-size: 14.5px; color: var(--dim); text-align: right; white-space: nowrap; }
+  .row .when .ago { color: var(--faint); }
+  .empty { text-align: center; color: var(--faint); font-size: 16px; padding: 22px 0 6px; }
+  .empty .big { font-size: 30px; margin-bottom: 8px; }
+
+  /* ============ timer banner — the whole UI while running ============ */
+  .timerbar { position: fixed; left: 50%; transform: translateX(-50%);
+    bottom: calc(122px + env(safe-area-inset-bottom)); z-index: 40;
+    width: min(444px, calc(100vw - 32px)); display: none; align-items: center; gap: 13px;
+    background: var(--s2); border-radius: 26px; padding: 14px 13px 14px 19px;
+    box-shadow: var(--lit), var(--shadow), var(--glow); }
+  .timerbar.on { display: flex; }
+  .timerbar .pulse { width: 13px; height: 13px; border-radius: 50%; flex: none; animation: pulse 1.8s ease-in-out infinite; }
+  .timerbar .lab { flex: 1; min-width: 0; }
+  .timerbar .k { font-size: 14px; color: var(--dim); font-weight: 650; }
+  .timerbar .v { font-size: 38px; font-weight: 700; letter-spacing: -.01em; line-height: 1.1; text-shadow: var(--glow); }
+  .timerbar .side { all: unset; cursor: pointer; font-size: 14.5px; font-weight: 700; color: var(--feed);
+    padding: 13px 13px; border-radius: 16px; min-height: 46px; box-sizing: border-box; }
+  .timerbar .stop { all: unset; cursor: pointer; font-size: 16.5px; font-weight: 800; color: var(--gold-ink);
+    background: var(--gold); padding: 14px 22px; border-radius: 20px; min-height: 50px; box-sizing: border-box;
+    box-shadow: 0 0 14px color-mix(in srgb, var(--gold) 45%, transparent);
+    transition: transform .3s cubic-bezier(.34,1.4,.64,1); }
+  .timerbar .stop:active { transform: scale(.93); }
+  .timerbar .side:focus-visible, .timerbar .stop:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1);} 50% { opacity: .4; transform: scale(.82);} }
+
+  /* ============ action bar — secondary now: predictions carry the primary
+     visual weight above. The frequently-used core actions (Nurse/Bottle/
+     Sleep/Diaper minus whichever's predicted, plus Solids) get a fixed,
+     comfortable size and are always on-screen; Bath and More (the Meds/Temp
+     gateway) are rarely tapped, so they sit at the end of the same row and
+     are allowed to scroll off-screen rather than shrinking everything to
+     force-fit. Fixed widths throughout so buttons never resize as
+     predictions change — only their presence toggles. ===== */
+  .actionbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+    padding: 10px 0 calc(14px + env(safe-area-inset-bottom)); display: flex; justify-content: center;
+    background: linear-gradient(180deg, transparent, var(--bg) 34%); }
+  .actions-wrap { position: relative; width: min(480px, 100%); }
+  .actions { display: flex; flex-wrap: nowrap; gap: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity; scrollbar-width: none; padding: 0 40px 0 14px; }
+  .actions::-webkit-scrollbar { display: none; }
+  /* solid, high-contrast badge — not a subtle color fade, which tested as
+     nearly invisible (light surface fading into a light page background).
+     Reuses the --dim/--panel-ink-edit pairing already verified elsewhere in
+     this app for real contrast. Tappable (scrolls the row) and disappears
+     once there's nothing left to reveal, via updateScrollHint() in JS. */
+  .scrollhint { all: unset; cursor: pointer; position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+    width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--dim); color: var(--panel-ink-edit); box-shadow: var(--shadow);
+    transition: opacity .2s ease, transform .2s cubic-bezier(.34,1.4,.64,1); }
+  .scrollhint svg { width: 16px; height: 16px; }
+  .scrollhint:active { transform: translateY(-50%) scale(.88); }
+  .scrollhint.hide { opacity: 0; pointer-events: none; }
+  .scrollhint:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  .act { all: unset; cursor: pointer; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 5px;
+    padding: 12px 4px 10px; border-radius: 22px; font-weight: 700; font-size: 12px; min-height: 68px;
+    flex: 0 0 70px; scroll-snap-align: start;
+    background: var(--s1); box-shadow: var(--lit), var(--shadow);
+    transition: transform .3s cubic-bezier(.34,1.4,.64,1); color: var(--text); position: relative; user-select: none; -webkit-user-select: none; }
+  .act:active { transform: scale(.9); }
+  .act:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  .act svg { width: 23px; height: 23px; }
+  .act.nurse { color: var(--feed); } .act.bottle { color: var(--feed); } .act.solids { color: var(--feed); }
+  .act.sleep { color: var(--sleep); } .act.diaper { color: var(--diaper); }
+  .act.bath { color: var(--gold-text); } .act.more { color: var(--dim); }
+  .act .lbl { color: var(--text); white-space: nowrap; }
+  .act .sub2 { display: none; } /* dropped: no room in the compact row; the hold-hint + coach-mark still teach the gesture */
+  .act.armed { background: color-mix(in srgb, var(--sleep) 22%, var(--s1)); box-shadow: var(--lit), var(--shadow), 0 0 14px color-mix(in srgb, var(--sleep) 40%, transparent); }
+  /* Simple mode hides the lower-frequency extras (Solids/Bath/More), keeping
+     only the core 4 (minus whatever's predicted) — consistent with Simple
+     mode's job of showing fewer things, independent of the separate
+     "Larger text & controls" sizing lever. */
+  body.simple .act.extra { display: none; }
+
+  /* hold-progress hint on long-pressable buttons */
+  .act .holdhint { position: absolute; top: 4px; right: 5px; font-size: 7.5px; font-weight: 800; color: var(--faint); letter-spacing: .03em; }
+  body.simple .act .holdhint { display: none; }
+
+  /* ============ sheets ============ */
+  .scrim { position: fixed; inset: 0; z-index: 50; background: var(--scrim); backdrop-filter: blur(2px);
+    opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+  .scrim.on { opacity: 1; pointer-events: auto; }
+  .sheet { position: fixed; left: 50%; bottom: 0; transform: translate(-50%, 100%); z-index: 51; width: min(480px, 100%);
+    background: var(--s1); border-radius: 32px 32px 0 0; box-shadow: var(--sheet-shadow), var(--lit);
+    padding: 10px 20px calc(24px + env(safe-area-inset-bottom)); transition: transform .34s cubic-bezier(.32,1.2,.4,1);
+    max-height: 88dvh; overflow-y: auto; }
+  .sheet.on { transform: translate(-50%, 0); }
+  .grip { width: 40px; height: 4px; border-radius: 3px; background: color-mix(in srgb, var(--faint) 40%, transparent); margin: 4px auto 14px; }
+  .sheet h3 { margin: 0 0 4px; font-size: 23px; font-weight: 700; letter-spacing: -.01em; }
+  .sheet .sub { margin: 0 0 18px; font-size: 15px; color: var(--faint); }
+  .sheet h4 { margin: 18px 0 10px; font-size: 13.5px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: var(--faint); }
+
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; margin-bottom: 16px; }
+  .seg.three { grid-template-columns: repeat(3, 1fr); }
+  .chip { all: unset; cursor: pointer; box-sizing: border-box; text-align: center; padding: 18px 8px; border-radius: 22px;
+    font-size: 17px; font-weight: 700; background: var(--s2); box-shadow: var(--lit); color: var(--text);
+    display: flex; flex-direction: column; align-items: center; gap: 8px; min-height: 70px;
+    transition: transform .3s cubic-bezier(.34,1.4,.64,1); }
+  .chip svg { width: 26px; height: 26px; }
+  .chip:active { transform: scale(.94); }
+  .chip:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  .chip[aria-pressed="true"] { box-shadow: var(--lit), inset 0 0 0 1.5px currentColor; background: color-mix(in srgb, currentColor 13%, var(--s1)); }
+  .chip.f { color: var(--feed); } .chip.s { color: var(--sleep); } .chip.d { color: var(--diaper); }
+  .chip .cl { color: var(--text); font-size: 17px; }
+  .chip small { color: var(--faint); font-size: 13.5px; font-weight: 600; }
+
+  .whenrow { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .whenrow button { all: unset; cursor: pointer; padding: 12px 16px; border-radius: 18px; font-size: 15px; font-weight: 700;
+    background: var(--s2); box-shadow: var(--lit); color: var(--dim); min-height: 46px; box-sizing: border-box; }
+  .whenrow button[aria-pressed="true"] { color: var(--text); box-shadow: var(--lit), inset 0 0 0 1.5px var(--gold); background: color-mix(in srgb, var(--gold) 11%, var(--s1)); }
+  .whenrow input[type="time"] { font-family: inherit; font-size: 15px; padding: 10px 12px; border-radius: 16px;
+    background: var(--s2); border: none; box-shadow: var(--lit); color: var(--text); min-height: 46px; box-sizing: border-box; }
+
+  .presets { display: flex; gap: 9px; flex-wrap: wrap; margin-bottom: 13px; }
+  .presets button { all: unset; cursor: pointer; padding: 13px 17px; border-radius: 20px; font-size: 17px; font-weight: 700;
+    background: var(--s2); box-shadow: var(--lit); color: var(--text); min-height: 48px; box-sizing: border-box;
+    transition: transform .3s cubic-bezier(.34,1.4,.64,1); }
+  .presets button[aria-pressed="true"] { box-shadow: var(--lit), inset 0 0 0 1.5px var(--feed); background: color-mix(in srgb, var(--feed) 11%, var(--s1)); }
+  .presets button:active { transform: scale(.93); }
+  .presets button:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+  .stepper { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--s2);
+    box-shadow: var(--lit); border-radius: 22px; padding: 14px 16px; margin-bottom: 16px; }
+  .stepper .amt { font-size: 36px; font-weight: 700; letter-spacing: -.02em; }
+  .stepper .amt small { font-size: 16.5px; color: var(--dim); font-weight: 600; }
+  .stepper .pm { display: flex; gap: 9px; }
+  .rnd { all: unset; cursor: pointer; width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center;
+    font-size: 26px; font-weight: 700; background: var(--s1); box-shadow: var(--lit), var(--shadow); color: var(--text);
+    transition: transform .3s cubic-bezier(.34,1.4,.64,1); }
+  .rnd:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  .rnd:active { transform: scale(.86); }
+
+  .field { width: 100%; box-sizing: border-box; background: var(--s2); border: none; box-shadow: var(--lit); color: var(--text);
+    border-radius: 18px; padding: 15px; font-size: 17px; margin-bottom: 16px; font-family: inherit; min-height: 50px; }
+  .field:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
+  label.lbl { font-size: 14px; color: var(--faint); font-weight: 600; display: block; margin: -6px 0 7px; }
+
+  .cta { all: unset; cursor: pointer; box-sizing: border-box; width: 100%; text-align: center; padding: 17px; border-radius: 22px;
+    font-size: 18px; font-weight: 800; background: var(--gold); color: var(--gold-ink); min-height: 56px;
+    box-shadow: var(--lit), var(--shadow); transition: transform .3s cubic-bezier(.34,1.4,.64,1); }
+  .cta:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  .cta:active { transform: scale(.97); }
+  .cta.ghost { background: var(--s2); color: var(--text); box-shadow: var(--lit); }
+  .cta.danger { background: color-mix(in srgb, var(--feed) 13%, var(--s1)); color: var(--feed); box-shadow: var(--lit); }
+  .ctarow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  /* pins the primary action to the bottom of the sheet's scrollport, so a
+     thumb never has to travel up past a scrolled stepper to confirm a log */
+  .stickycta { position: sticky; bottom: -1px; margin: 14px -20px -1px; padding: 14px 20px calc(6px + env(safe-area-inset-bottom));
+    background: linear-gradient(0deg, var(--s1) 72%, transparent); }
+
+  .unitrow { display: flex; gap: 9px; margin-bottom: 16px; }
+  .unitrow button { all: unset; cursor: pointer; padding: 11px 18px; border-radius: 16px; font-size: 15px; font-weight: 700;
+    background: var(--s2); box-shadow: var(--lit); color: var(--dim); min-height: 46px; box-sizing: border-box; }
+  .unitrow button[aria-pressed="true"] { color: var(--text); box-shadow: var(--lit), inset 0 0 0 1.5px var(--gold); }
+
+  .member { display: flex; align-items: center; gap: 13px; padding: 15px 0; }
+  .member + .member { border-top: 1px solid color-mix(in srgb, var(--faint) 18%, transparent); }
+  .member .info { flex: 1; min-width: 0; }
+  .member .nm { font-size: 17px; font-weight: 700; }
+  .member .rl { font-size: 14.5px; color: var(--faint); }
+  .member .badges { display: flex; gap: 6px; margin-top: 4px; }
+  .member .tag { font-size: 12.5px; font-weight: 700; padding: 3px 9px; border-radius: 20px; background: var(--s2); color: var(--dim); }
+  .logas { all: unset; cursor: pointer; font-size: 14.5px; font-weight: 700; color: var(--gold-text);
+    padding: 12px 15px; border-radius: 16px; box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--gold) 40%, transparent); min-height: 46px; box-sizing: border-box; }
+  .logas[data-cur="1"] { color: var(--good); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--good) 45%, transparent); cursor: default; }
+  .logas:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+  .invite { display: flex; align-items: center; gap: 11px; background: var(--s2); box-shadow: var(--lit);
+    border-radius: 18px; padding: 14px 16px; margin-bottom: 9px; }
+  .invite code { flex: 1; font-size: 16px; font-weight: 700; letter-spacing: .04em; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  .invite button { all: unset; cursor: pointer; font-size: 15px; font-weight: 700; color: var(--gold-text); padding: 10px; min-height: 46px; box-sizing: border-box; }
+  .freeline { display: flex; gap: 9px; align-items: center; font-size: 14.5px; color: var(--good); font-weight: 650; margin: 3px 0 7px; }
+
+  .toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 0; }
+  .toggle + .toggle { border-top: 1px solid color-mix(in srgb, var(--faint) 18%, transparent); }
+  .toggle .tl { font-size: 17px; font-weight: 650; }
+  .toggle .td { font-size: 14.5px; color: var(--faint); }
+  .sw { all: unset; cursor: pointer; width: 54px; height: 32px; border-radius: 20px; background: color-mix(in srgb, var(--faint) 45%, transparent); position: relative; flex: none; transition: background .15s ease; }
+  .sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 26px; height: 26px; border-radius: 50%; background: #fff; transition: transform .16s ease; }
+  .sw[aria-pressed="true"] { background: var(--good); }
+  .sw[aria-pressed="true"]::after { transform: translateX(22px); }
+  .sw:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+  .picker { display: flex; gap: 9px; flex-wrap: wrap; margin-bottom: 9px; }
+  .picker button { all: unset; cursor: pointer; padding: 13px 16px; border-radius: 18px; font-size: 15px; font-weight: 700;
+    background: var(--s2); box-shadow: var(--lit); color: var(--dim); display: flex; align-items: center; gap: 8px; min-height: 48px; box-sizing: border-box; }
+  .picker button[aria-pressed="true"] { color: var(--text); box-shadow: var(--lit), inset 0 0 0 1.5px var(--gold); }
+  .hint { font-size: 14.5px; color: var(--faint); margin: -2px 0 16px; }
+
+  .toast { position: fixed; left: 50%; transform: translate(-50%, 20px); bottom: calc(216px + env(safe-area-inset-bottom)); z-index: 60;
+    background: var(--text); color: var(--bg); padding: 14px 18px; border-radius: 20px; font-size: 15.5px; font-weight: 700;
+    display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow); opacity: 0; pointer-events: none;
+    transition: opacity .25s ease, transform .32s cubic-bezier(.34,1.4,.64,1); max-width: 92vw; }
+  .toast.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  .toast .chk { width: 23px; height: 23px; border-radius: 50%; background: var(--good); color: #fff; display: grid; place-items: center; flex: none; font-size: 13.5px; }
+  .toast button { all: unset; cursor: pointer; color: var(--toast-accent); font-weight: 800; padding: 8px; margin: -8px -4px; }
+  .toast button:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 4px; }
+
+  .foot { text-align: center; font-size: 13.5px; color: var(--faint); margin-top: 2px; }
+  .foot button { all: unset; cursor: pointer; color: var(--dim); text-decoration: underline; padding: 6px; }
+
+  body.simple .ribbon, body.simple .strip, body.simple .hero .why { display: none; }
+
+  /* Accessible mode — a true size lever, independent of Simple mode. Scales
+     type, icons, targets and spacing together via zoom (this also stands in
+     for OS-level dynamic type in this web prototype; a native build should
+     additionally honor the platform's text-size setting directly). Now that
+     the base scale itself is bigger, zoom alone is enough — no per-component
+     min-height override needed (a flat override here would fight the base
+     sizes, which now differ per component: e.g. .chip's own floor is already
+     taller than a single "56px for everything" rule would allow). */
+
+  /* --- swipe rows: swipe LEFT (content slides left) reveals Delete on the
+     right — the harder, more deliberate direction for a right-handed thumb,
+     so the destructive action isn't the easy accidental one. Swipe RIGHT
+     (content slides right, the easier direction) reveals the safe action,
+     Edit, on the left. --- */
+  .rowwrap { position: relative; border-radius: 14px; overflow: hidden; touch-action: pan-y; }
+  .swipeunder { position: absolute; inset: 0; display: flex; align-items: stretch; justify-content: space-between; }
+  .swipeunder .sw-edit { flex: 1; display: flex; align-items: center; font-size: 14.5px; font-weight: 700;
+    justify-content: flex-start; padding-left: 18px; background: var(--dim); color: var(--panel-ink-edit); }
+  .rowbtn { background: var(--bg); position: relative; z-index: 1; transition: transform .22s cubic-bezier(.22,.8,.28,1); }
+  .row.swiping .rowbtn { transition: none; }
+  /* revealed = delete swiped-open and awaiting a confirming tap, not yet
+     committed — a destructive action never fires from drag-release alone.
+     .sw-del is a real <button> (unlike the auto-firing, non-destructive
+     .sw-edit label) so it needs its own reset + the shared panel styling
+     re-declared, since `all: unset` on the button wipes it. */
+  .swipeunder .sw-del { all: unset; box-sizing: border-box; cursor: pointer;
+    flex: 1; display: flex; align-items: center; font-size: 14.5px; font-weight: 700; color: var(--panel-ink-del);
+    justify-content: flex-end; padding-right: 18px; background: var(--feed); }
+  .swipeunder .sw-del:focus-visible { outline: 2px solid var(--ring); outline-offset: -3px; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
+</style>
+
+<div class="app" id="app">
+  <header>
+    <button class="baby-btn disp" id="babyBtn" aria-label="Edit baby profile">
+      <span class="hi" id="greet">Good evening</span>
+      <span class="nm"><span id="babyName">Baby</span><span class="age" id="babyAge"></span></span>
+    </button>
+    <div class="hbtns">
+      <button class="whochip" id="whoChip" aria-label="Switch caregiver — who is logging">
+        <span class="av" id="whoAv">Y</span><span id="whoNm">You</span>
+      </button>
+      <button class="icobtn" id="setBtn" aria-label="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="simplebanner" id="simpleBanner">
+    <span class="av" id="sbAv">G</span>
+    <span class="txt" id="sbTxt">Simple mode</span>
+    <button id="sbBack">Switch back</button>
+  </div>
+
+  <section class="hero" aria-live="polite">
+    <span class="lead" id="heroLead">Last fed</span>
+    <span class="big disp tnum" id="heroBig">—</span>
+  </section>
+
+  <div class="predict-group" id="predictGroup" hidden>
+    <div class="predict-label" id="predictLabel">Predicted for you</div>
+    <div class="predict-tiles" id="predictTiles">
+      <button class="predict-tile" id="predictTile0" hidden>
+        <span class="predict-tile-ic"></span>
+        <span class="predict-tile-lead"></span>
+        <span class="predict-tile-msg"></span>
+      </button>
+      <button class="predict-tile" id="predictTile1" hidden>
+        <span class="predict-tile-ic"></span>
+        <span class="predict-tile-lead"></span>
+        <span class="predict-tile-msg"></span>
+      </button>
+    </div>
+  </div>
+
+  <section class="ribbon">
+    <div class="rhead"><h2 id="tlTitle">Today's rhythm</h2><span class="meta" id="tlDate"></span></div>
+    <div class="timeline" id="timeline" role="img" aria-label="Timeline of today's feeds, sleeps and diapers"></div>
+    <div class="legend" id="legend"></div>
+  </section>
+
+  <section class="strip" id="strip"></section>
+
+  <section class="recent">
+    <h2><span id="raTitle">Recent</span><button class="seeall" id="seeAll">See all</button></h2>
+    <div id="list"></div>
+  </section>
+
+  <p class="foot">Prototype · sharing &amp; live sync are simulated on one device · <button id="resetBtn">reset demo</button></p>
+</div>
+
+<div class="timerbar" id="timerbar" role="status" aria-live="polite">
+  <span class="pulse" id="timerPulse"></span>
+  <div class="lab"><div class="k" id="timerK">Nursing</div><div class="v disp tnum" id="timerV">0:00</div></div>
+  <button class="side" id="timerSide" hidden>Switch</button>
+  <button class="stop" id="timerStop">Stop</button>
+</div>
+
+<nav class="actionbar" aria-label="Log an event">
+  <div class="actions-wrap">
+  <div class="actions" id="actionsRow">
+    <button class="act nurse" id="actNurse" aria-label="Start nursing — tap to start on the usual side, hold for the other side">
+      <span class="holdhint">HOLD ⇄</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v4.5l3 2"/></svg>
+      <span class="lbl" id="nurseLbl">Nurse</span>
+      <span class="sub2" id="nurseSub">tap = Left</span>
+    </button>
+    <button class="act bottle" id="actBottle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2h8M9 2l.6 3M15 2l-.6 3"/><path d="M7.5 8.5c0-1.7 1.2-3 2.7-3.4h3.6c1.5.4 2.7 1.7 2.7 3.4V19a3 3 0 0 1-3 3H10.5a3 3 0 0 1-3-3z"/><path d="M8 12h4M8 15.5h4"/></svg>
+      <span class="lbl" id="bottleLbl">Bottle</span>
+      <span class="sub2" id="bottleSub"></span>
+    </button>
+    <button class="act sleep" id="actSleep">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      <span class="lbl" id="sleepLbl">Sleep</span>
+      <span class="sub2" id="sleepSub">tap = start</span>
+    </button>
+    <button class="act diaper" id="actDiaper" aria-label="Log diaper — tap for wet, hold to choose">
+      <span class="holdhint">HOLD ⋯</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18v3a9 9 0 0 1-9 9 9 9 0 0 1-9-9z"/><path d="M3 6c4 1.5 14 1.5 18 0"/></svg>
+      <span class="lbl" id="diaperLbl">Diaper</span>
+      <span class="sub2" id="diaperSub">tap = wet</span>
+    </button>
+    <button class="act solids extra" id="actSolids">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a8 8 0 0 0 16 0"/><path d="M4 11h16"/><path d="M17 11V4c-1.6 0-2.5 1.6-2.5 3.5S15.4 11 17 11z"/></svg>
+      <span class="lbl" id="solidsLbl">Solids</span>
+    </button>
+    <button class="act bath extra" id="actBath">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16v3a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z"/><path d="M7 12V6a2 2 0 0 1 4 0"/></svg>
+      <span class="lbl" id="bathLbl">Bath</span>
+    </button>
+    <button class="act more extra" id="actMoreRow" aria-label="More: meds, temperature and other logs">
+      <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
+      <span class="lbl" id="moreLbl">More</span>
+    </button>
+  </div>
+  <button class="scrollhint" id="scrollHint" aria-label="Scroll to see more">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+  </button>
+  </div>
+</nav>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></div>
+
+<div class="toast" id="toast"><span class="chk" id="toastChk" hidden>✓</span><span id="toastMsg"></span><button id="toastAction" hidden></button></div>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var K = { ev:"lull.events.v5", baby:"lull.baby.v5", timer:"lull.timer.v5", pref:"lull.pref.v5", care:"lull.care.v5", cur:"lull.cur.v5" };
+
+  var I18N = {
+    en: { g_morning:"Good morning", g_afternoon:"Good afternoon", g_evening:"Good evening", g_night:"Late night",
+      nurse:"Nurse", bottle:"Bottle", sleep:"Sleep", diaper:"Diaper", wake:"Wake",
+      left:"Left", right:"Right", wet:"Wet", dirty:"Dirty", mixed:"Mixed", solids:"Solids", nursing:"Nursing",
+      last_fed:"Last fed", ago:"ago",
+      todays_rhythm:"Today's rhythm", recent:"Recent", now:"Now", asleep:"Asleep", awake:"Awake",
+      sleep_today:"Sleep today", diapers:"Diapers", fed_today:"Fed today", last_diaper:"Last diaper", right_now:"Right now",
+      saved:"logged", when:"When", today:"today", tap_start:"tap = start", tap_wet:"tap = wet",
+      simple_mode:"Simple mode", switch_back:"Switch back", logging_as:"logging as",
+      nothing:"All quiet for now", tapbelow:"Tap a button below when you're ready",
+      log_bottle:"Log bottle", log_solids:"Log solids", choose_diaper:"Log a diaper", onetap:"One tap.",
+      never_paywalled:"Free forever — sharing is never behind a paywall.",
+      bath:"Bath", meds:"Meds", temp:"Temp", more:"More", predicted_for_you:"Predicted for you",
+      log_meds:"Log meds", log_temp:"Log temperature", meds_name_ph:"What medicine? (e.g. Tylenol)",
+      meds_dose_ph:"Dose (e.g. 2.5ml)", more_sub:"Less-frequent logs.", coming_soon:"Coming soon" },
+    tl: { g_morning:"Magandang umaga", g_afternoon:"Magandang hapon", g_evening:"Magandang gabi", g_night:"Gabing-gabi na",
+      nurse:"Pasuso", bottle:"Bote", sleep:"Tulog", diaper:"Lampin", wake:"Gising",
+      left:"Kaliwa", right:"Kanan", wet:"Basa", dirty:"Dumi", mixed:"Basa at dumi", solids:"Pagkain", nursing:"Pasuso",
+      last_fed:"Huling pakain", ago:"ang nakalipas",
+      todays_rhythm:"Takbo ngayong araw", recent:"Mga huling ginawa", now:"Ngayon", asleep:"Tulog", awake:"Gising",
+      sleep_today:"Tulog ngayon", diapers:"Lampin", fed_today:"Nainom ngayon", last_diaper:"Huling lampin", right_now:"Ngayon mismo",
+      saved:"na-log", when:"Kailan", today:"ngayon", tap_start:"pindot = simula", tap_wet:"pindot = basa",
+      simple_mode:"Simpleng mode", switch_back:"Bumalik", logging_as:"nagre-record bilang",
+      nothing:"Tahimik muna", tapbelow:"Pindutin ang buton sa ibaba kapag handa na",
+      log_bottle:"I-record ang bote", log_solids:"I-record ang pagkain", choose_diaper:"Mag-record ng lampin", onetap:"Isang pindot lang.",
+      never_paywalled:"Libre magpakailanman — hindi kailanman babayaran ang pagbabahagi.",
+      bath:"Ligo", meds:"Gamot", temp:"Lagnat", more:"Iba pa", predicted_for_you:"Hula para sa iyo",
+      log_meds:"I-record ang gamot", log_temp:"I-record ang temperatura", meds_name_ph:"Anong gamot? (hal. Tylenol)",
+      meds_dose_ph:"Dosis (hal. 2.5ml)", more_sub:"Bihirang i-record.", coming_soon:"Paparating na" }
+  };
+
+  /* `simple` (fewer things on screen) and `access` (larger text & controls) are
+     independent — neither is inferred from caregiver identity. Grace defaults to
+     Simple because she asked for less clutter, not because bigger controls are
+     assumed from being "the helper"; either caregiver can turn `access` on. */
+  /* avatar fill colors are fixed (not theme-reactive) and paired with white
+     initials, so each is picked to clear 4.5:1 against white on its own —
+     these are deliberately a shade darker than the matching category hue. */
+  var DEFAULT_CARE = [
+    { id:"you",   name:"You",   badge:"Y", color:"#8a5c14", role:"Owner",   simple:false, access:false, lang:"en" },
+    { id:"grace", name:"Grace", badge:"G", color:"#0b7259", role:"Helper",  simple:true,  access:false, lang:"tl" },
+    { id:"sam",   name:"Sam",   badge:"S", color:"#5a49c8", role:"Partner", simple:false, access:false, lang:"en" }
+  ];
+
+  var db = {
+    events: load(K.ev, null), baby: load(K.baby, null), timer: load(K.timer, null),
+    pref: load(K.pref, { unit:"ml", side:"L", lastAmount:null, stats:["sleep","diapers","feedVol"] }),
+    care: load(K.care, null), cur: load(K.cur, "you")
+  };
+  var lastDeleted = null, toastTimer = null, showAll = false, revealedRow = null;
+
+  function load(k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+  function saveK(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function persist() { saveK(K.ev, db.events); saveK(K.baby, db.baby); saveK(K.timer, db.timer); saveK(K.pref, db.pref); saveK(K.care, db.care); saveK(K.cur, db.cur); }
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function buzz(p) { try { if (navigator.vibrate) navigator.vibrate(p || 18); } catch (e) {} }
+
+  if (!db.care) db.care = DEFAULT_CARE.map(function (c) { return Object.assign({}, c); });
+  db.care.forEach(function (c) { if (c.access == null) c.access = false; });
+  if (!db.pref.stats) db.pref.stats = ["sleep","diapers","feedVol"];
+  if (db.events === null) { db.baby = { name:"Baby", dob: Date.now() - 86400000 * 84 }; db.events = seed(); persist(); }
+  if (!db.baby) db.baby = { name:"Baby", dob:null };
+
+  function seed() {
+    var now = Date.now(), H = 3600000, M = 60000, e = [];
+    function a(o){ e.push(o); }
+    a({ id:uid(), type:"feed", sub:"nursing", side:"L", by:"sam",   start: now-6.7*H, end: now-6.7*H+16*M });
+    a({ id:uid(), type:"diaper", sub:"wet",   by:"sam",   start: now-6.4*H });
+    a({ id:uid(), type:"sleep",               by:"you",   start: now-6.1*H, end: now-4.2*H });
+    a({ id:uid(), type:"feed", sub:"bottle", amount:120, unit:"ml", by:"grace", start: now-4.0*H });
+    a({ id:uid(), type:"diaper", sub:"dirty", by:"grace", start: now-3.6*H });
+    a({ id:uid(), type:"sleep",               by:"grace", start: now-3.1*H, end: now-1.7*H });
+    a({ id:uid(), type:"feed", sub:"nursing", side:"R", by:"you", start: now-1.5*H, end: now-1.5*H+19*M });
+    a({ id:uid(), type:"diaper", sub:"mixed", by:"grace", start: now-1.1*H });
+    return e.sort(function (x,y){ return x.start-y.start; });
+  }
+
+  function cur() { return db.care.filter(function (c){ return c.id===db.cur; })[0] || db.care[0]; }
+  function careById(id) { return db.care.filter(function (c){ return c.id===id; })[0] || db.care[0]; }
+  function lang() { return cur().lang || "en"; }
+  function simpleOn() { return !!cur().simple; }
+  function accessOn() { return !!cur().access; }
+  function t(key) { var L=I18N[lang()]||I18N.en; return L[key]!=null?L[key]:(I18N.en[key]!=null?I18N.en[key]:key); }
+
+  function fmtClock(ts) { return new Date(ts).toLocaleTimeString([], { hour:"numeric", minute:"2-digit" }); }
+  function agoStr(ts) { var s=Math.max(0,Math.floor((Date.now()-ts)/1000));
+    if (s<60) return "now"; var m=Math.floor(s/60); if (m<60) return m+"m";
+    var h=Math.floor(m/60), r=m%60; return r?h+"h "+r+"m":h+"h"; }
+  function dur(ms) { var s=Math.floor(ms/1000), h=Math.floor(s/3600), m=Math.floor((s%3600)/60), ss=s%60;
+    return h>0 ? h+":"+String(m).padStart(2,"0")+":"+String(ss).padStart(2,"0") : m+":"+String(ss).padStart(2,"0"); }
+  function durShort(ms) { var m=Math.round(ms/60000); if (m<60) return m+"m"; var h=Math.floor(m/60), r=m%60; return r?h+"h "+r+"m":h+"h"; }
+  function startOfDay() { var d=new Date(); d.setHours(0,0,0,0); return d.getTime(); }
+  function todays() { var s=startOfDay(); return db.events.filter(function (x){ return x.start>=s; }); }
+  function ageText() { if (!db.baby.dob) return ""; var d=Math.floor((Date.now()-db.baby.dob)/86400000);
+    return d<14?d+"d":d<90?Math.floor(d/7)+"w":Math.floor(d/30.4)+"mo"; }
+
+  var ICONS = {
+    feed:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2h8M9 2l.6 3M15 2l-.6 3"/><path d="M7.5 8.5c0-1.7 1.2-3 2.7-3.4h3.6c1.5.4 2.7 1.7 2.7 3.4V19a3 3 0 0 1-3 3H10.5a3 3 0 0 1-3-3z"/><path d="M8 12h4"/></svg>',
+    sleep:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
+    diaper:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18v3a9 9 0 0 1-9 9 9 9 0 0 1-9-9z"/><path d="M3 6c4 1.5 14 1.5 18 0"/></svg>',
+    solids:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a8 8 0 0 0 16 0"/><path d="M4 11h16"/><path d="M17 11V4c-1.6 0-2.5 1.6-2.5 3.5S15.4 11 17 11z"/></svg>',
+    bath:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16v3a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z"/><path d="M7 12V6a2 2 0 0 1 4 0"/></svg>',
+    meds:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="8" width="19" height="8" rx="4"/><line x1="12" y1="8" x2="12" y2="16"/></svg>',
+    temp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0z"/><path d="M12 8v5"/></svg>'
+  };
+  function colorFor(x) {
+    if (x==="feed") return "var(--feed)";
+    if (x==="sleep") return "var(--sleep)";
+    if (x==="diaper") return "var(--diaper)";
+    return "var(--gold-text)"; // bath/meds/temp — secondary/extra types share the accent hue
+  }
+
+  function labelFor(ev) {
+    if (ev.type==="feed") return ev.sub==="nursing"?t("nursing"):ev.sub==="bottle"?t("bottle"):ev.sub==="solids"?t("solids"):"Feed";
+    if (ev.type==="sleep") return t("sleep");
+    if (ev.type==="diaper") return t("diaper");
+    if (ev.type==="bath") return t("bath");
+    if (ev.type==="meds") return t("meds");
+    if (ev.type==="temp") return t("temp");
+    return "Event";
+  }
+  function detailFor(ev) {
+    if (ev.type==="feed") {
+      if (ev.sub==="nursing") return (ev.side==="R"?t("right"):t("left"))+(ev.end?" · "+durShort(ev.end-ev.start):"");
+      if (ev.sub==="bottle") return ev.amount+" "+(ev.unit||"ml");
+      if (ev.sub==="solids") return ev.note||t("solids");
+    }
+    if (ev.type==="sleep") return ev.end?durShort(ev.end-ev.start):"…";
+    if (ev.type==="diaper") return ev.sub==="wet"?t("wet"):ev.sub==="dirty"?t("dirty"):t("mixed");
+    if (ev.type==="temp") return ev.value.toFixed(1)+"°"+ev.unit;
+    if (ev.type==="meds") return ev.name+(ev.dose?" · "+ev.dose:"");
+    return "";
+  }
+  function nextSide() {
+    var n=db.events.filter(function (x){ return x.type==="feed"&&x.sub==="nursing"&&x.side; });
+    if (!n.length) return db.pref.side||"L";
+    return n[n.length-1].side==="L"?"R":"L";
+  }
+
+  /* ---------- time of day ---------- */
+  function tod() { var h=new Date().getHours();
+    return h>=17&&h<21?"dusk":h>=21||h<5?"night":h<8?"predawn":"day"; }
+
+  /* ---------- RENDER ---------- */
+  function render() {
+    document.body.dataset.tod = tod();
+    document.body.classList.toggle("simple", simpleOn());
+    document.body.classList.toggle("access", accessOn());
+    document.documentElement.style.setProperty("--ts", accessOn() ? "1.18" : "1");
+    var hh=new Date().getHours();
+    $("#greet").textContent = hh<5?t("g_night"):hh<12?t("g_morning"):hh<17?t("g_afternoon"):hh<22?t("g_evening"):t("g_night");
+    $("#babyName").textContent = db.baby.name||"Baby";
+    $("#babyAge").textContent = ageText()?"· "+ageText():"";
+    $("#tlDate").textContent = new Date().toLocaleDateString([], { weekday:"short", month:"short", day:"numeric" });
+    $("#tlTitle").textContent = t("todays_rhythm"); $("#raTitle").textContent = t("recent");
+    $("#nurseLbl").textContent=t("nurse"); $("#bottleLbl").textContent=t("bottle");
+    $("#diaperLbl").textContent=t("diaper");
+    $("#solidsLbl").textContent=t("solids"); $("#bathLbl").textContent=t("bath"); $("#moreLbl").textContent=t("more");
+    $("#predictLabel").textContent=t("predicted_for_you");
+    $("#nurseSub").textContent="tap = "+(nextSide()==="R"?t("right"):t("left"));
+    $("#bottleSub").textContent = db.pref.lastAmount? "tap = "+db.pref.lastAmount+" "+db.pref.unit : "";
+    $("#sleepSub").textContent = db.timer&&db.timer.type==="sleep" ? "" : t("tap_start");
+    $("#diaperSub").textContent = t("tap_wet");
+    renderWho(); renderHero(); renderPredict(); renderTimeline(); renderStrip(); renderList(); renderTimer();
+    updateScrollHint(); // button visibility above can change how much is left to scroll to
+  }
+
+  function renderWho() {
+    var c=cur(); $("#whoAv").style.background=c.color; $("#whoAv").textContent=c.badge; $("#whoNm").textContent=c.name;
+    var sb=$("#simpleBanner");
+    if (simpleOn() || accessOn()) {
+      var label = simpleOn() && accessOn() ? t("simple_mode")+" + larger text"
+        : simpleOn() ? t("simple_mode") : "Larger text";
+      sb.classList.add("on"); $("#sbAv").style.background=c.color; $("#sbAv").textContent=c.badge;
+      $("#sbTxt").textContent=label+" — "+t("logging_as")+" "+c.name; $("#sbBack").textContent=t("switch_back");
+    } else sb.classList.remove("on");
+  }
+
+  function renderHero() {
+    var big=$("#heroBig"), lead=$("#heroLead");
+    $(".hero").classList.toggle("live", !!db.timer);
+    if (db.timer) {
+      lead.textContent = db.timer.type==="sleep" ? t("asleep") : t("nursing")+" · "+(db.timer.side==="R"?t("right"):t("left"));
+      big.innerHTML = '<b>'+dur(Date.now()-db.timer.start)+'</b>';
+      return;
+    }
+    var feeds=db.events.filter(function (x){ return x.type==="feed"; });
+    var lf=feeds.length?feeds[feeds.length-1]:null;
+    lead.textContent = t("last_fed");
+    big.innerHTML = lf ? '<b>'+agoStr(lf.start)+'</b> '+t("ago") : "—";
+  }
+
+  /* ---------- predicted next action(s) ----------
+     Looks at feed/sleep/diaper independently: the average gap between the
+     last few of that type vs. how long it's actually been since the last
+     one. Sorted by how far each type is into its typical cycle (highest
+     elapsed/average ratio first) — the top 2 that clear ~55% of a typical
+     cycle become the primary card and a lighter secondary chip, so the app
+     always offers a second guess when the data supports one instead of
+     betting everything on a single call. No timer running, since there's
+     no "next action" question mid-feed/mid-sleep — the hero already covers
+     that. */
+  function computePredictions() {
+    if (db.timer) return [];
+    var now=Date.now();
+    var byType = {
+      feed:   db.events.filter(function (x){ return x.type==="feed"; }),
+      sleep:  db.events.filter(function (x){ return x.type==="sleep"; }),
+      diaper: db.events.filter(function (x){ return x.type==="diaper"; })
+    };
+    var cands=[];
+    Object.keys(byType).forEach(function (type) {
+      var evs=byType[type];
+      if (evs.length<2) return;
+      if (type==="feed" && !predictedFeedSub(evs)) return; // no nursing/bottle history to act on yet
+      var recent=evs.slice(-6), gaps=[];
+      for (var i=1;i<recent.length;i++) gaps.push(recent[i].start-recent[i-1].start);
+      var avg=gaps.reduce(function (a,b){return a+b;},0)/gaps.length;
+      if (avg<=0) return;
+      var last=evs[evs.length-1], elapsed=now-last.start, ratio=elapsed/avg;
+      cands.push({ type:type, evs:evs, avg:avg, elapsed:elapsed, ratio:ratio });
+    });
+    cands.sort(function (a,b){ return b.ratio-a.ratio; });
+    return cands.filter(function (c){ return c.ratio>=0.55; }).slice(0,2);
+  }
+  function predictedFeedSub(evs) {
+    var subs=evs.slice(-5).map(function (e){ return e.sub; }).filter(function (s){ return s==="nursing"||s==="bottle"; });
+    if (!subs.length) return null;
+    var counts={}; subs.forEach(function (s){ counts[s]=(counts[s]||0)+1; });
+    if (counts.nursing===counts.bottle) return subs[subs.length-1];
+    return counts.nursing>(counts.bottle||0) ? "nursing" : "bottle";
+  }
+  function buildPredictAction(p) {
+    var icon, color, label, actFn, badgeId, cycleWord =
+      p.type==="feed" ? "feeds" : p.type==="sleep" ? "sleeps" : "diapers";
+    if (p.type==="sleep") {
+      icon=ICONS.sleep; color="var(--sleep)"; label=t("sleep"); badgeId="actSleep";
+      actFn=function (){ startTimer("sleep"); };
+    } else if (p.type==="diaper") {
+      icon=ICONS.diaper; color="var(--diaper)"; label=t("diaper")+" · "+t("wet"); badgeId="actDiaper";
+      actFn=function (){ logDiaper("wet", Date.now()); };
+    } else {
+      icon=ICONS.feed; color="var(--feed)";
+      var sub=predictedFeedSub(p.evs);
+      if (sub==="bottle") {
+        var lastBottle=p.evs.filter(function (e){ return e.sub==="bottle"; }).pop();
+        var amount=(lastBottle&&lastBottle.amount)||db.pref.lastAmount||(db.pref.unit==="oz"?4:120);
+        var unit=(lastBottle&&lastBottle.unit)||db.pref.unit||"ml";
+        label=t("bottle")+" · "+amount+" "+unit; badgeId="actBottle";
+        actFn=function (){ logBottle(amount, unit, Date.now()); };
+      } else {
+        var side=nextSide();
+        label=t("nursing")+" · "+(side==="R"?t("right"):t("left")); badgeId="actNurse";
+        actFn=function (){ startTimer("feed", side); };
+      }
+    }
+    return { icon:icon, color:color, label:label, actFn:actFn, badgeId:badgeId, cycleWord:cycleWord };
+  }
+
+  /* Renders the (up to 2) predicted tiles AND, in the same pass, hides
+     whichever of the 4 core manual buttons are now covered by a tile —
+     the row defers to the prediction instead of duplicating it. Solids/
+     Bath/More are never touched here; they have no predictable cycle, so
+     they stay as always-available constants in the row. */
+  var lastPredictMsgs=[null,null];
+  function renderPredict() {
+    var group=$("#predictGroup"), tiles=$("#predictTiles"), t0=$("#predictTile0"), t1=$("#predictTile1");
+    ["actNurse","actBottle","actSleep","actDiaper"].forEach(function (id){ $("#"+id).hidden=false; });
+    var list=computePredictions();
+    if (!list.length) {
+      group.hidden=true;
+      t0.hidden=true; t0.onclick=null; t1.hidden=true; t1.onclick=null;
+      lastPredictMsgs=[null,null];
+      return;
+    }
+    group.hidden=false;
+    tiles.classList.toggle("single", list.length<2);
+    [t0, t1].forEach(function (tile, i) {
+      var p=list[i];
+      if (!p) { tile.hidden=true; tile.onclick=null; lastPredictMsgs[i]=null; return; }
+      var a=buildPredictAction(p);
+      tile.querySelector(".predict-tile-ic").innerHTML=a.icon;
+      tile.querySelector(".predict-tile-ic").style.color=a.color;
+      tile.querySelector(".predict-tile-lead").textContent = p.ratio>=1 ? "Ready" : "Soon";
+      tile.querySelector(".predict-tile-msg").textContent = a.label;
+      tile.setAttribute("aria-label", "Log "+a.label+" now — predicted next action");
+      if (tile.hidden || lastPredictMsgs[i]!==a.label) { tile.classList.remove("pop"); void tile.offsetWidth; tile.classList.add("pop"); }
+      tile.hidden=false;
+      tile.onclick=function (){ buzz(16); a.actFn(); };
+      if (a.badgeId) $("#"+a.badgeId).hidden=true; // this action moved up into a tile — don't show it twice
+      lastPredictMsgs[i]=a.label;
+    });
+  }
+
+  function renderTimeline() {
+    var tl=$("#timeline"); tl.innerHTML=""; var s=startOfDay(), DAY=86400000;
+    var tr=document.createElement("div"); tr.className="tl-track"; tl.appendChild(tr);
+    [6,12,18].forEach(function (h){ var g=mk("tl-grid"); g.style.left=(h/24*100)+"%"; tl.appendChild(g); });
+    [0,6,12,18,24].forEach(function (h){ var lab=mk("tl-hour"); lab.style.left=Math.min(97,Math.max(3,h/24*100))+"%";
+      lab.textContent = h===0?"12a":h===12?"12p":h===24?"":(h<12?h+"a":(h-12)+"p"); tl.appendChild(lab); });
+    todays().forEach(function (ev){
+      var left=(ev.start-s)/DAY*100;
+      if (ev.type==="sleep"&&ev.end){ var w=(ev.end-ev.start)/DAY*100; var b=mk("tl-bar"); b.style.left=left+"%"; b.style.width=Math.max(0.9,w)+"%";
+        b.setAttribute("aria-label", t("sleep")+", "+fmtClock(ev.start)+"–"+fmtClock(ev.end)); tl.appendChild(b); }
+      else if (ev.type==="feed"){ var f=mk("tl-feed"); f.style.left=left+"%"; f.setAttribute("aria-label", labelFor(ev)+", "+fmtClock(ev.start)); tl.appendChild(f); }
+      else if (ev.type==="diaper"){ var d=mk("tl-diaper"); d.style.left=left+"%"; d.setAttribute("aria-label", t("diaper")+" "+detailFor(ev)+", "+fmtClock(ev.start)); tl.appendChild(d); }
+    });
+    var p=(Date.now()-s)/DAY*100;
+    var now=mk("tl-now"); now.style.left=p+"%"; tl.appendChild(now);
+    var moon=mk("tl-moon"); moon.style.left=p+"%";
+    moon.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+    tl.appendChild(moon);
+    $("#legend").innerHTML =
+      '<span><i class="lg-feed"></i>'+ (lang()==="tl"?"Pakain":"Feed") +'</span>'+
+      '<span><i class="lg-sleep"></i>'+t("sleep")+'</span>'+
+      '<span><i class="lg-diaper"></i>'+t("diaper")+'</span>';
+  }
+  function mk(cls){ var d=document.createElement("div"); d.className=cls; return d; }
+
+  function renderStrip() {
+    var t2=todays(), out="";
+    (db.pref.stats||[]).slice(0,3).forEach(function (key){
+      if (key==="sleep") { var ms=t2.filter(function (x){return x.type==="sleep"&&x.end;}).reduce(function (a,x){return a+(x.end-x.start);},0);
+        out+=stat("sleep", t("sleep_today"), ms?durShort(ms):"0m", ""); }
+      if (key==="diapers") { var ds=t2.filter(function (x){return x.type==="diaper";}); var w=ds.filter(function (x){return x.sub!=="dirty";}).length, dd=ds.filter(function (x){return x.sub!=="wet";}).length;
+        out+=stat("diaper", t("diapers"), String(ds.length), w+" "+t("wet").toLowerCase()+" · "+dd+" "+t("dirty").toLowerCase()); }
+      if (key==="feedVol") { var bs=t2.filter(function (x){return x.type==="feed"&&x.sub==="bottle";});
+        var unit=bs.length?(bs[bs.length-1].unit||"ml"):(db.pref.unit||"ml");
+        var total=bs.filter(function (x){return (x.unit||"ml")===unit;}).reduce(function (a,x){return a+(+x.amount||0);},0);
+        out+=stat("feed", t("fed_today"), (unit==="oz"?String(+total.toFixed(1)):String(total))+" "+unit, bs.length+" ×"); }
+      if (key==="lastDiaper") { var ld=null, arr=db.events.filter(function (x){return x.type==="diaper";}); if (arr.length) ld=arr[arr.length-1];
+        out+=stat("diaper", t("last_diaper"), ld?agoStr(ld.start):"—", ld?detailFor(ld):""); }
+      if (key==="state") { var v=db.timer&&db.timer.type==="sleep"?t("asleep"):t("awake");
+        out+=stat("sleep", t("right_now"), v, ""); }
+    });
+    $("#strip").innerHTML=out;
+  }
+  function stat(type, k, v, s) {
+    return '<div class="stat"><span class="k"><i style="background:'+colorFor(type)+'"></i>'+k+'</span><span class="v tnum">'+v+'</span>'+(s?'<span class="s">'+s+'</span>':'')+'</div>';
+  }
+
+  function renderList() {
+    var list=$("#list"); list.innerHTML="";
+    var evs=db.events.slice().sort(function (a,b){return b.start-a.start;}).slice(0, showAll?30:(simpleOn()?5:3));
+    $("#seeAll").textContent = showAll ? "Less" : "See all";
+    if (!evs.length){ list.innerHTML='<div class="empty"><div class="big">🌙</div>'+t("nothing")+'<br>'+t("tapbelow")+'</div>'; return; }
+    evs.forEach(function (ev){
+      var who=careById(ev.by||"you");
+      var row=document.createElement("div"); row.className="row rowwrap";
+      row.innerHTML =
+        '<div class="swipeunder" aria-hidden="true">'+
+          '<span class="sw-edit">Edit</span><button class="sw-del" tabindex="-1" aria-hidden="true">Delete</button>'+
+        '</div>'+
+        '<button class="rowbtn" aria-label="Edit '+labelFor(ev)+' at '+fmtClock(ev.start)+' — or swipe right to edit, swipe left to reveal delete">'+
+          '<div class="glyph" style="color:'+colorFor(ev.type)+'">'+ICONS[ev.type]+'<span class="who" style="background:'+who.color+'">'+who.badge+'</span></div>'+
+          '<div style="flex:1;min-width:0"><div class="t1">'+labelFor(ev)+' <span style="color:var(--faint);font-weight:600">· '+detailFor(ev)+'</span></div>'+
+          '<div class="t2">'+who.name+'</div></div>'+
+          '<div class="when tnum">'+fmtClock(ev.start)+'<br><span class="ago">'+agoStr(ev.start)+' '+ (lang()==="tl"?"":"ago") +'</span></div>'+
+        '</button>';
+      var btn=row.querySelector(".rowbtn");
+      wireSwipe(row, btn, function (){ editSheet(ev.id); }, function (){ removeEvent(ev.id); });
+      list.appendChild(row);
+    });
+  }
+
+  /* Swipe-right auto-triggers Edit on release (safe, non-destructive — no
+     harm in firing straight from the gesture). Swipe-left only REVEALS
+     Delete; it does not fire on release — a destructive action needs its
+     own distinct confirming tap on the now-visible Delete button, so a
+     slightly-too-long drag-and-release can never silently delete a log
+     entry. Tap always still opens the edit sheet as the unconditional
+     baseline — swipe is an accelerator, never the only path, so mouse/
+     keyboard/screen-reader users lose nothing. Only one row can be
+     revealed at a time. */
+  function wireSwipe(row, btn, onEdit, onDelete) {
+    var startX=0, startY=0, dx=0, active=false, locked=null, suppressClick=false;
+    var THRESH=64, REVEAL=96;
+    var under=row.querySelector(".swipeunder"), delBtn=row.querySelector(".sw-del");
+
+    function closeReveal() {
+      row.classList.remove("revealed"); btn.style.transform="";
+      under.setAttribute("aria-hidden","true"); delBtn.setAttribute("tabindex","-1"); delBtn.setAttribute("aria-hidden","true");
+      if (revealedRow===closeReveal) revealedRow=null;
+    }
+    function openReveal() {
+      if (revealedRow && revealedRow!==closeReveal) revealedRow();
+      row.classList.add("revealed"); btn.style.transform="translateX(-"+REVEAL+"px)";
+      under.setAttribute("aria-hidden","false"); delBtn.setAttribute("tabindex","0"); delBtn.setAttribute("aria-hidden","false");
+      revealedRow=closeReveal;
+    }
+    delBtn.addEventListener("click", function (e){ e.stopPropagation(); closeReveal(); onDelete(); });
+
+    btn.addEventListener("pointerdown", function (e){
+      if (revealedRow && revealedRow!==closeReveal) revealedRow();
+      startX=e.clientX; startY=e.clientY; dx = row.classList.contains("revealed") ? -REVEAL : 0; active=true; locked=null;
+    });
+    btn.addEventListener("pointermove", function (e){
+      if (!active) return;
+      var mx=e.clientX-startX, my=e.clientY-startY;
+      if (locked===null) { if (Math.abs(mx)<6 && Math.abs(my)<6) return; locked = Math.abs(mx)>Math.abs(my) ? "x" : "y"; }
+      if (locked!=="x") return;
+      var base = row.classList.contains("revealed") ? -REVEAL : 0;
+      dx = Math.max(-REVEAL, Math.min(96, base+mx));
+      row.classList.add("swiping"); btn.style.transform="translateX("+dx+"px)";
+    });
+    function end() {
+      if (!active) return; active=false; row.classList.remove("swiping");
+      if (locked==="x") {
+        suppressClick=true;
+        if (dx<=-THRESH) { buzz(20); openReveal(); }
+        else if (dx>=THRESH) { buzz(20); closeReveal(); onEdit(); }
+        else { closeReveal(); }
+      }
+    }
+    btn.addEventListener("pointerup", end);
+    btn.addEventListener("pointercancel", function (){ active=false; row.classList.remove("swiping"); });
+    btn.addEventListener("pointerleave", function (){ if (active && locked!=="x") { active=false; row.classList.remove("swiping"); } });
+    btn.addEventListener("click", function (e){
+      if (suppressClick) { suppressClick=false; e.preventDefault(); return; }
+      if (row.classList.contains("revealed")) { closeReveal(); return; }
+      onEdit();
+    });
+  }
+
+  /* ---------- timer ---------- */
+  function renderTimer() {
+    var bar=$("#timerbar"), sideBtn=$("#timerSide"), aSleep=$("#actSleep");
+    if (db.timer) {
+      bar.classList.add("on"); var isSleep=db.timer.type==="sleep";
+      $("#timerPulse").style.background = isSleep?"var(--sleep)":"var(--feed)";
+      $("#timerK").textContent = (isSleep?t("asleep"):t("nursing")+" · "+(db.timer.side==="R"?t("right"):t("left"))) + " · "+careById(db.timer.by||db.cur).name;
+      $("#sleepLbl").textContent = isSleep?t("wake"):t("sleep");
+      aSleep.classList.toggle("armed", isSleep);
+      sideBtn.hidden = isSleep; if (!isSleep) sideBtn.textContent = "⇄ "+(db.timer.side==="R"?t("left"):t("right"));
+    } else { bar.classList.remove("on"); $("#sleepLbl").textContent=t("sleep"); aSleep.classList.remove("armed"); sideBtn.hidden=true; }
+    tickTimer();
+  }
+  function tickTimer() { if (!db.timer) return; var v=dur(Date.now()-db.timer.start); $("#timerV").textContent=v;
+    if (db.timer) $("#heroBig").innerHTML='<b>'+v+'</b>'; }
+  function startTimer(type, side) {
+    if (db.timer) { toast("Stop the current timer first"); return; }
+    db.timer={ type:type, side:side||null, start:Date.now(), by:db.cur }; persist(); buzz(); render();
+    toast((type==="sleep"?t("sleep"):t("nursing")+" · "+(side==="R"?t("right"):t("left")))+" started", null, null, true);
+  }
+  function stopTimer() {
+    if (!db.timer) return; var tm=db.timer, end=Date.now();
+    db.events.push({ id:uid(), type:tm.type, sub:tm.type==="feed"?"nursing":undefined, side:tm.side, by:tm.by||db.cur, start:tm.start, end:end });
+    db.timer=null; persist(); buzz([14,60,14]); render();
+    var who=careById(db.cur).name;
+    toast((tm.type==="sleep"?t("sleep"):(tm.side==="R"?t("right"):t("left")))+" · "+durShort(end-tm.start)+" "+t("saved")+" · "+who, null, null, true);
+  }
+  $("#timerStop").addEventListener("click", stopTimer);
+  $("#timerSide").addEventListener("click", function (){ if (db.timer&&db.timer.type==="feed"){ db.timer.side=db.timer.side==="R"?"L":"R"; persist(); buzz(); renderTimer(); } });
+
+  /* ---------- logging ---------- */
+  function addEvent(o, msg) { o.id=uid(); o.by=db.cur; db.events.push(o); db.events.sort(function (a,b){return a.start-b.start;});
+    persist(); buzz(); render(); closeSheet();
+    toast(msg+" · "+careById(db.cur).name, "Undo", function (){ var i=db.events.indexOf(o); if (i>=0){ db.events.splice(i,1); persist(); render(); } }, true); }
+  function logDiaper(sub, when) { addEvent({ type:"diaper", sub:sub, start:when }, t("diaper")+" · "+detailFor({type:"diaper",sub:sub})+" "+t("saved")); }
+  function logBottle(amount, unit, when) { db.pref.lastAmount=amount; db.pref.unit=unit; addEvent({ type:"feed", sub:"bottle", amount:amount, unit:unit, start:when }, t("bottle")+" · "+amount+" "+unit+" "+t("saved")); }
+  function logSolids(food, when) { addEvent({ type:"feed", sub:"solids", note:food||t("solids"), start:when }, t("solids")+" "+t("saved")); }
+
+  function removeEvent(id) {
+    var i=db.events.findIndex(function (x){return x.id===id;}); if (i<0) return;
+    lastDeleted=db.events[i]; db.events.splice(i,1); persist(); render();
+    toast("Entry deleted", "Undo", function (){ if (lastDeleted){ db.events.push(lastDeleted); db.events.sort(function (a,b){return a.start-b.start;}); lastDeleted=null; persist(); render(); } });
+  }
+
+  /* ---------- toast ---------- */
+  function toast(msg, actionLabel, actionFn, check) {
+    var el=$("#toast"), a=$("#toastAction"), c=$("#toastChk");
+    $("#toastMsg").textContent=msg; c.hidden=!check;
+    if (actionLabel){ a.hidden=false; a.textContent=actionLabel; a.onclick=function (){ hideToast(); actionFn&&actionFn(); }; }
+    else { a.hidden=true; a.onclick=null; }
+    el.classList.add("on"); clearTimeout(toastTimer); toastTimer=setTimeout(hideToast, actionLabel?4500:2200);
+  }
+  function hideToast() { $("#toast").classList.remove("on"); }
+
+  /* One-time coach-marks for the app's non-obvious gestures — corner "HOLD"
+     labels alone tested as easy to miss, and swiping a row has no visible
+     affordance at all. Two short tips, not one long one. Skipped in Simple
+     mode, where these advanced interactions are deliberately less surfaced.
+     Shown once per caregiver, not once globally, so a caregiver switching in
+     later still gets them. */
+  function maybeShowGestureTip() {
+    var c=cur();
+    if (c.seenGestureTip || simpleOn()) return;
+    c.seenGestureTip=true; persist();
+    setTimeout(function (){ toast("Tip: hold Nurse for the other side, hold Diaper for dirty/mixed", "Got it"); }, 900);
+    setTimeout(function (){ toast("Tip: swipe an entry right to edit, left to reveal Delete", "Got it"); }, 5600);
+  }
+
+  /* ---------- sheet infra ---------- */
+  var lastFocus=null;
+  function openSheet(html) {
+    var sh=$("#sheet"); sh.innerHTML='<div class="grip"></div>'+html; $("#scrim").classList.add("on"); sh.classList.add("on");
+    lastFocus=document.activeElement; var f=sh.querySelector("button, input, [tabindex]"); if (f) setTimeout(function (){ f.focus(); }, 60);
+  }
+  function closeSheet() { $("#sheet").classList.remove("on"); $("#scrim").classList.remove("on"); if (lastFocus&&lastFocus.focus) lastFocus.focus(); }
+  $("#scrim").addEventListener("click", closeSheet);
+  document.addEventListener("keydown", function (e){ if (e.key==="Escape") closeSheet(); });
+
+  function whenControl() {
+    return '<h4>'+t("when")+'</h4><div class="whenrow" id="whenRow">'+
+      '<button data-off="0" aria-pressed="true">'+t("now")+'</button>'+
+      '<button data-off="15">15m</button><button data-off="30">30m</button><button data-off="60">1h</button>'+
+      '<input type="time" id="whenTime" aria-label="Custom time" /></div>';
+  }
+  function wireWhen(root) {
+    var offset={v:0}, custom=null;
+    root.querySelectorAll("#whenRow [data-off]").forEach(function (b){ b.addEventListener("click", function (){
+      root.querySelectorAll("#whenRow [data-off]").forEach(function (x){ x.setAttribute("aria-pressed", x===b?"true":"false"); });
+      offset.v=+b.dataset.off; custom=null; var ti=root.querySelector("#whenTime"); if (ti) ti.value="";
+    }); });
+    var ti=root.querySelector("#whenTime");
+    if (ti) ti.addEventListener("change", function (){ if (!ti.value){ custom=null; return; }
+      root.querySelectorAll("#whenRow [data-off]").forEach(function (x){ x.setAttribute("aria-pressed","false"); });
+      var p=ti.value.split(":"), d=new Date(); d.setHours(+p[0],+p[1],0,0); if (d.getTime()>Date.now()) d.setDate(d.getDate()-1); custom=d.getTime(); });
+    return function (){ return custom!=null ? custom : Date.now()-offset.v*60000; };
+  }
+
+  /* ---------- long-press helper ---------- */
+  function pressable(el, onTap, onHold) {
+    var timer=null, held=false;
+    function down(e) { held=false; timer=setTimeout(function (){ held=true; buzz(28); onHold(); }, 480); }
+    function up(e) { clearTimeout(timer); if (!held && e.type!=="pointerleave" && e.type!=="pointercancel") onTap(); }
+    el.addEventListener("pointerdown", down);
+    el.addEventListener("pointerup", up);
+    el.addEventListener("pointerleave", function (){ clearTimeout(timer); });
+    el.addEventListener("pointercancel", function (){ clearTimeout(timer); });
+    el.addEventListener("contextmenu", function (e){ e.preventDefault(); });
+    el.addEventListener("keydown", function (e){ if (e.key==="Enter"||e.key===" "){ e.preventDefault(); onTap(); } if (e.key==="h"||e.key==="H") onHold(); });
+  }
+
+  /* ---------- sheets ---------- */
+  function bottleSheet() {
+    var unit=db.pref.unit||"ml", amount=db.pref.lastAmount||(unit==="oz"?4:120);
+    openSheet('<h3 id="sheetTitle">'+t("bottle")+'</h3><p class="sub">'+t("onetap")+'</p><div id="tabbody"></div>');
+    paint();
+    function paint() {
+      var body=$("#tabbody");
+      var presets = unit==="oz" ? [2,3,4,5,6] : [60,90,120,150,180];
+      var step = unit==="oz" ? 0.25 : 10;
+      body.innerHTML='<div class="unitrow"><button data-u="ml" aria-pressed="'+(unit==="ml")+'">ml</button><button data-u="oz" aria-pressed="'+(unit==="oz")+'">oz</button></div>'+
+        '<div class="presets" id="presets">'+presets.map(function (p){ return '<button data-p="'+p+'" aria-pressed="'+(p===amount)+'">'+p+'</button>'; }).join("")+'</div>'+
+        '<div class="stepper"><div class="amt"><span id="amtV" class="tnum disp">'+fmtAmt(amount)+'</span> <small>'+unit+'</small></div>'+
+        '<div class="pm"><button class="rnd" id="minus" aria-label="less">−</button><button class="rnd" id="plus" aria-label="more">+</button></div></div>'+
+        whenControl()+
+        '<div class="stickycta"><button class="cta" id="logBottle">'+t("log_bottle")+'</button></div>';
+      function fmtAmt(a){ return unit==="oz"?String(+(+a).toFixed(2)):a; }
+      function upd(){ $("#amtV").textContent=fmtAmt(amount); body.querySelectorAll("#presets [data-p]").forEach(function (x){ x.setAttribute("aria-pressed", (+x.dataset.p)===amount?"true":"false"); }); }
+      body.querySelector("#minus").addEventListener("click", function (){ amount=Math.max(step,+(amount-step).toFixed(2)); upd(); });
+      body.querySelector("#plus").addEventListener("click", function (){ amount=+(amount+step).toFixed(2); upd(); });
+      body.querySelectorAll("#presets [data-p]").forEach(function (b){ b.addEventListener("click", function (){ amount=+b.dataset.p; upd(); }); });
+      body.querySelectorAll("[data-u]").forEach(function (b){ b.addEventListener("click", function (){ unit=b.dataset.u; db.pref.unit=unit; persist(); amount=unit==="oz"?4:120; paint(); }); });
+      var resolve=wireWhen(body);
+      body.querySelector("#logBottle").addEventListener("click", function (){ logBottle(amount, unit, resolve()); });
+    }
+  }
+
+  function diaperPicker() {
+    openSheet('<h3 id="sheetTitle">'+t("choose_diaper")+'</h3><p class="sub">'+t("onetap")+'</p>'+
+      '<div class="seg three" style="margin-bottom:6px">'+
+      '<button class="chip d" data-s="wet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/></svg><span class="cl">'+t("wet")+'</span></button>'+
+      '<button class="chip d" data-s="dirty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 19h12a3 3 0 0 0 .5-6 4 4 0 0 0-6.9-3A3.5 3.5 0 0 0 6 13a3 3 0 0 0 0 6z"/></svg><span class="cl">'+t("dirty")+'</span></button>'+
+      '<button class="chip d" data-s="mixed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/><path d="M9 13h6"/></svg><span class="cl">'+t("mixed")+'</span></button></div>'+
+      whenControl());
+    var body=$("#sheet"), resolve=wireWhen(body);
+    body.querySelectorAll("[data-s]").forEach(function (b){ b.addEventListener("click", function (){ logDiaper(b.dataset.s, resolve()); }); });
+  }
+
+  function solidsSheet() {
+    openSheet('<h3 id="sheetTitle">'+t("solids")+'</h3><p class="sub"></p>'+
+      '<input class="field" id="foodInput" placeholder="What did baby eat? (optional)" autocomplete="off" />'+whenControl()+
+      '<div class="stickycta"><button class="cta" id="logSolid">'+t("log_solids")+'</button></div>');
+    var body=$("#sheet"), resolve=wireWhen(body);
+    body.querySelector("#logSolid").addEventListener("click", function (){ logSolids(body.querySelector("#foodInput").value.trim(), resolve()); });
+  }
+  function logBath(when) { addEvent({ type:"bath", start:when }, t("bath")+" "+t("saved")); }
+
+  function tempSheet() {
+    var unit=db.pref.tempUnit||"F", value=db.pref.lastTemp||(unit==="F"?98.6:37.0);
+    openSheet('<h3 id="sheetTitle">'+t("temp")+'</h3><p class="sub">'+t("onetap")+'</p><div id="tempbody"></div>');
+    paint();
+    function paint() {
+      var body=$("#tempbody");
+      body.innerHTML='<div class="unitrow"><button data-u="F" aria-pressed="'+(unit==="F")+'">°F</button><button data-u="C" aria-pressed="'+(unit==="C")+'">°C</button></div>'+
+        '<div class="stepper"><div class="amt"><span id="tempV" class="tnum disp">'+value.toFixed(1)+'</span> <small>°'+unit+'</small></div>'+
+        '<div class="pm"><button class="rnd" id="tminus" aria-label="less">−</button><button class="rnd" id="tplus" aria-label="more">+</button></div></div>'+
+        whenControl()+
+        '<div class="stickycta"><button class="cta" id="logTemp">'+t("log_temp")+'</button></div>';
+      function upd(){ $("#tempV").textContent=value.toFixed(1); }
+      body.querySelector("#tminus").addEventListener("click", function (){ value=+(value-0.1).toFixed(1); upd(); });
+      body.querySelector("#tplus").addEventListener("click", function (){ value=+(value+0.1).toFixed(1); upd(); });
+      body.querySelectorAll("[data-u]").forEach(function (b){ b.addEventListener("click", function (){
+        var nu=b.dataset.u; if (nu===unit) return;
+        value = nu==="C" ? +((value-32)*5/9).toFixed(1) : +((value*9/5)+32).toFixed(1);
+        unit=nu; db.pref.tempUnit=unit; persist(); paint();
+      }); });
+      var resolve=wireWhen(body);
+      body.querySelector("#logTemp").addEventListener("click", function (){ logTemp(value, unit, resolve()); });
+    }
+  }
+  function logTemp(value, unit, when) {
+    db.pref.lastTemp=value; db.pref.tempUnit=unit;
+    addEvent({ type:"temp", value:value, unit:unit, start:when }, t("temp")+" · "+value.toFixed(1)+"°"+unit+" "+t("saved"));
+  }
+
+  function medsSheet() {
+    openSheet('<h3 id="sheetTitle">'+t("meds")+'</h3><p class="sub"></p>'+
+      '<input class="field" id="medName" placeholder="'+t("meds_name_ph")+'" autocomplete="off" />'+
+      '<input class="field" id="medDose" placeholder="'+t("meds_dose_ph")+'" autocomplete="off" />'+
+      whenControl()+
+      '<div class="stickycta"><button class="cta" id="logMedsBtn">'+t("log_meds")+'</button></div>');
+    var body=$("#sheet"), resolve=wireWhen(body);
+    body.querySelector("#logMedsBtn").addEventListener("click", function (){
+      logMeds(body.querySelector("#medName").value.trim(), body.querySelector("#medDose").value.trim(), resolve());
+    });
+  }
+  function logMeds(name, dose, when) {
+    addEvent({ type:"meds", name:name||t("meds"), dose:dose||"", start:when },
+      (name||t("meds"))+(dose?" · "+dose:"")+" "+t("saved"));
+  }
+
+  function moreShortcutsSheet() {
+    openSheet('<h3 id="sheetTitle">'+t("more")+'</h3><p class="sub">'+t("more_sub")+'</p>'+
+      '<div class="seg" style="margin-bottom:6px">'+
+      '<button class="chip" data-go="meds">'+ICONS.meds+'<span class="cl">'+t("meds")+'</span></button>'+
+      '<button class="chip" data-go="temp">'+ICONS.temp+'<span class="cl">'+t("temp")+'</span></button>'+
+      '</div>'+
+      '<h4>'+t("coming_soon")+'</h4><div class="picker">'+["Pump","Growth","Export"].map(function (m){ return '<button data-soon="'+m+'">'+m+'</button>'; }).join("")+'</div>');
+    $("#sheet").querySelectorAll("[data-go]").forEach(function (b){ b.addEventListener("click", function (){
+      if (b.dataset.go==="meds") medsSheet(); else tempSheet();
+    }); });
+    $("#sheet").querySelectorAll("[data-soon]").forEach(function (b){ b.addEventListener("click", function (){ toast('"'+b.dataset.soon+'" is on the roadmap ✨'); }); });
+  }
+
+  function editSheet(id) {
+    var ev=db.events.filter(function (x){return x.id===id;})[0]; if (!ev) return;
+    var d=new Date(ev.start), hh=String(d.getHours()).padStart(2,"0"), mm=String(d.getMinutes()).padStart(2,"0");
+    openSheet('<h3 id="sheetTitle">'+labelFor(ev)+'</h3><p class="sub">'+detailFor(ev)+' · '+careById(ev.by||"you").name+'</p>'+
+      '<label class="lbl">Time</label><input class="field" id="etime" type="time" value="'+hh+":"+mm+'" />'+
+      '<div class="stickycta ctarow"><button class="cta danger" id="edel">Delete</button><button class="cta" id="esave">Save time</button></div>');
+    $("#esave").addEventListener("click", function (){ var v=$("#etime").value; if (v){ var p=v.split(":"), nd=new Date(ev.start); nd.setHours(+p[0],+p[1],0,0);
+      if (nd.getTime()>Date.now()+60000) nd.setDate(nd.getDate()-1); var delta=nd.getTime()-ev.start; ev.start=nd.getTime(); if (ev.end) ev.end+=delta;
+      db.events.sort(function (a,b){return a.start-b.start;}); persist(); render(); } closeSheet(); toast("Time updated", null, null, true); });
+    $("#edel").addEventListener("click", function (){ closeSheet(); removeEvent(id); });
+  }
+
+  function shareSheet() {
+    var members = db.care.map(function (c){
+      var tags=""; if (c.simple) tags+='<span class="tag">Simple mode</span>'; if (c.lang&&c.lang!=="en") tags+='<span class="tag">'+c.lang.toUpperCase()+'</span>';
+      var isCur=c.id===db.cur;
+      return '<div class="member"><span class="av" style="background:'+c.color+'">'+c.badge+'</span>'+
+        '<div class="info"><div class="nm">'+c.name+'</div><div class="rl">'+c.role+'</div><div class="badges">'+tags+'</div></div>'+
+        '<button class="logas" data-log="'+c.id+'" data-cur="'+(isCur?1:0)+'">'+(isCur?"Logging":"Log as")+'</button></div>';
+    }).join("");
+    openSheet('<h3 id="sheetTitle">Family &amp; sharing</h3><p class="sub">Everyone logs the same baby, live. Who logged what is always shown.</p>'+
+      '<div class="freeline"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'+t("never_paywalled")+'</div>'+
+      members+
+      '<h4>Invite a caregiver</h4><div class="invite"><code>lull.family / 7K9-QX</code><button id="copyInv">Copy</button></div>'+
+      '<p class="hint">Send this to your partner or helper; they join the same baby instantly.</p>'+
+      '<button class="cta ghost" id="simLive2">👶 Simulate a live update from Grace</button>');
+    $("#sheet").querySelectorAll("[data-log]").forEach(function (b){ b.addEventListener("click", function (){ if (b.dataset.log===db.cur) return;
+      db.cur=b.dataset.log; persist(); render(); closeSheet(); toast("Now logging as "+cur().name+(simpleOn()?" · simple mode":""), null, null, true);
+      maybeShowGestureTip(); }); });
+    $("#copyInv").addEventListener("click", function (){ try { navigator.clipboard.writeText("lull.family/7K9-QX"); } catch (e){} toast("Invite copied", null, null, true); });
+    $("#simLive2").addEventListener("click", function (){ closeSheet(); simulateHelper(); });
+  }
+
+  function simulateHelper() {
+    var opts=[{type:"diaper",sub:"wet"},{type:"diaper",sub:"dirty"},{type:"feed",sub:"bottle",amount:db.pref.unit==="oz"?4:120,unit:db.pref.unit||"ml"}];
+    var o=opts[Math.floor(Math.random()*opts.length)]; o.id=uid(); o.by="grace"; o.start=Date.now();
+    db.events.push(o); db.events.sort(function (a,b){return a.start-b.start;}); persist(); render();
+    toast("Grace logged "+labelFor(o).toLowerCase()+" · "+detailFor(o)+" · now", null, null, true);
+  }
+
+  function settingsSheet() {
+    var me=cur();
+    var OPTS=[["sleep",t("sleep_today")],["diapers",t("diapers")],["feedVol",t("fed_today")],["lastDiaper",t("last_diaper")],["state",t("right_now")]];
+    openSheet('<h3 id="sheetTitle">Settings</h3><p class="sub">Personal to '+me.name+'. Each caregiver has their own.</p>'+
+      '<h4>Quick stats (pick 3)</h4><div class="picker" id="tilePick">'+
+      OPTS.map(function (o){ return '<button data-tile="'+o[0]+'" aria-pressed="'+((db.pref.stats||[]).indexOf(o[0])>=0)+'">'+o[1]+'</button>'; }).join("")+'</div>'+
+      '<p class="hint">Formula parents: "Fed today". Night-duty: "Right now".</p>'+
+      '<h4>Log solids</h4><button class="cta ghost" id="goSolids" style="margin-bottom:6px">'+t("solids")+'…</button>'+
+      '<h4>Accessibility &amp; language</h4>'+
+      '<div class="toggle"><div><div class="tl">'+t("simple_mode")+'</div><div class="td">Fewer things on screen — hides the rhythm ribbon and stats.</div></div><button class="sw" id="swSimple" aria-pressed="'+me.simple+'" role="switch" aria-label="Simple mode"></button></div>'+
+      '<div class="toggle"><div><div class="tl">Larger text &amp; controls</div><div class="td">Bigger type and tap targets throughout — independent of Simple mode.</div></div><button class="sw" id="swAccess" aria-pressed="'+me.access+'" role="switch" aria-label="Larger text and controls"></button></div>'+
+      '<div class="toggle"><div><div class="tl">Language</div><div class="td">Demo: English / Tagalog (placeholder — needs native review).</div></div>'+
+        '<div class="unitrow" style="margin:0"><button id="langEn" aria-pressed="'+(me.lang!=="tl")+'">EN</button><button id="langTl" aria-pressed="'+(me.lang==="tl")+'">TL</button></div></div>'+
+      '<h4>More (coming soon)</h4><div class="picker">'+["Pump","Growth","Export"].map(function (m){ return '<button data-soon="'+m+'">'+m+'</button>'; }).join("")+'</div>');
+    $("#tilePick").querySelectorAll("[data-tile]").forEach(function (b){ b.addEventListener("click", function (){
+      var k=b.dataset.tile, arr=(db.pref.stats||[]).slice(), i=arr.indexOf(k);
+      if (i>=0) arr.splice(i,1); else { arr.push(k); if (arr.length>3) arr.shift(); }
+      db.pref.stats=arr; persist();
+      $("#tilePick").querySelectorAll("[data-tile]").forEach(function (x){ x.setAttribute("aria-pressed", db.pref.stats.indexOf(x.dataset.tile)>=0?"true":"false"); });
+      render(); }); });
+    $("#goSolids").addEventListener("click", function (){ solidsSheet(); });
+    $("#swSimple").addEventListener("click", function (){ me.simple=!me.simple; persist(); this.setAttribute("aria-pressed", me.simple); render(); });
+    $("#swAccess").addEventListener("click", function (){ me.access=!me.access; persist(); this.setAttribute("aria-pressed", me.access); render(); });
+    $("#langEn").addEventListener("click", function (){ me.lang="en"; persist(); render(); settingsSheet(); });
+    $("#langTl").addEventListener("click", function (){ me.lang="tl"; persist(); render(); settingsSheet(); });
+    $("#sheet").querySelectorAll("[data-soon]").forEach(function (b){ b.addEventListener("click", function (){ toast('"'+b.dataset.soon+'" is on the roadmap ✨'); }); });
+  }
+
+  function babySheet() {
+    var dobVal=db.baby.dob?new Date(db.baby.dob).toISOString().slice(0,10):"";
+    openSheet('<h3 id="sheetTitle">Baby profile</h3><p class="sub">Used for greetings and (soon) growth charts.</p>'+
+      '<input class="field" id="nm" value="'+(db.baby.name||"")+'" placeholder="Baby\'s name" autocomplete="off" />'+
+      '<label class="lbl">Date of birth</label><input class="field" id="dob" type="date" value="'+dobVal+'" />'+
+      '<div class="stickycta ctarow"><button class="cta ghost" id="cxl">Cancel</button><button class="cta" id="sv">Save</button></div>');
+    $("#cxl").addEventListener("click", closeSheet);
+    $("#sv").addEventListener("click", function (){ db.baby.name=$("#nm").value.trim()||"Baby"; var dob=$("#dob").value;
+      db.baby.dob=dob?new Date(dob+"T12:00:00").getTime():null; persist(); render(); closeSheet(); toast("Profile saved", null, null, true); });
+  }
+
+  /* ---------- wire actions ---------- */
+  pressable($("#actNurse"),
+    function (){ // tap: start on alternation-implied side; if nursing timer running, stop it
+      if (db.timer && db.timer.type==="feed") { stopTimer(); return; }
+      if (db.timer) { toast("Stop the sleep timer first"); return; }
+      var s=nextSide(); db.pref.side=s; startTimer("feed", s); },
+    function (){ // hold: other side
+      if (db.timer) { toast("Stop the current timer first"); return; }
+      var s=nextSide()==="L"?"R":"L"; db.pref.side=s; startTimer("feed", s); });
+  pressable($("#actDiaper"),
+    function (){ logDiaper("wet", Date.now()); },
+    function (){ diaperPicker(); });
+  $("#actBottle").addEventListener("click", bottleSheet);
+  $("#actSleep").addEventListener("click", function (){
+    if (db.timer&&db.timer.type==="sleep") stopTimer();
+    else if (db.timer) toast("Stop the nursing timer first");
+    else startTimer("sleep"); });
+  $("#actSolids").addEventListener("click", solidsSheet);
+  $("#actBath").addEventListener("click", function (){ buzz(); logBath(Date.now()); });
+  $("#actMoreRow").addEventListener("click", moreShortcutsSheet);
+
+  /* Shows a solid, tappable chevron badge whenever there's more of the
+     action row to scroll to (Bath/More living off-screen), and hides it
+     once fully scrolled — not a color fade, which tested as too subtle to
+     notice against the light theme's surfaces. */
+  var actionsRow=$("#actionsRow"), scrollHint=$("#scrollHint");
+  function updateScrollHint() {
+    var remaining = actionsRow.scrollWidth - actionsRow.clientWidth - actionsRow.scrollLeft;
+    scrollHint.classList.toggle("hide", remaining < 16);
+  }
+  actionsRow.addEventListener("scroll", updateScrollHint);
+  scrollHint.addEventListener("click", function (){ actionsRow.scrollBy({ left: 180, behavior: "smooth" }); });
+  window.addEventListener("resize", updateScrollHint);
+  $("#babyBtn").addEventListener("click", babySheet);
+  $("#whoChip").addEventListener("click", shareSheet);
+  $("#setBtn").addEventListener("click", settingsSheet);
+  $("#sbBack").addEventListener("click", function (){
+    if (db.cur==="you") { cur().simple=false; cur().access=false; } else { db.cur="you"; }
+    persist(); render(); });
+  $("#seeAll").addEventListener("click", function (){ showAll=!showAll; renderList(); });
+  /* window.confirm() is unreliable here — sandboxed iframes (including how
+     this prototype is actually viewed, as a published Artifact) commonly
+     omit "allow-modals", which makes confirm() return false immediately
+     with no dialog shown at all, silently no-opping the whole action. Use
+     an in-app confirm sheet instead of a browser-native dialog. */
+  $("#resetBtn").addEventListener("click", function (){
+    openSheet('<h3 id="sheetTitle">Reset demo?</h3><p class="sub">This clears all data on this device. Can\'t be undone.</p>'+
+      '<div class="stickycta ctarow"><button class="cta ghost" id="rstCxl">Cancel</button><button class="cta danger" id="rstGo">Reset</button></div>');
+    $("#rstCxl").addEventListener("click", closeSheet);
+    $("#rstGo").addEventListener("click", function (){
+      closeSheet();
+      Object.keys(K).forEach(function (k){ localStorage.removeItem(K[k]); });
+      db.care=DEFAULT_CARE.map(function (c){ return Object.assign({}, c); }); db.cur="you";
+      db.pref={ unit:"ml", side:"L", lastAmount:null, stats:["sleep","diapers","feedVol"] };
+      db.baby={ name:"Baby", dob: Date.now()-86400000*84 }; db.timer=null; db.events=seed(); persist(); render();
+      toast("Demo reset", null, null, true);
+    });
+  });
+
+  render();
+  maybeShowGestureTip();
+  setInterval(tickTimer, 1000);
+  setInterval(render, 60000);
+})();
+</script>
