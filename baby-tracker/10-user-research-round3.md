@@ -149,3 +149,49 @@ Three rounds now point the same direction, and Round 3 makes it unambiguous:
 
 The prototype has done its job. The research is now saying: *stop polishing the
 demo, start building the real thing — beginning with sync.*
+
+---
+
+## Addendum — targeted follow-up: the "Today's rhythm" ribbon
+
+*The round-3 script didn't probe the 24h rhythm ribbon specifically, so all 8
+personas were re-asked one focused question: do you look at it, is it useful or
+decoration, and what one change would help.*
+
+**Average usefulness: 2.1 / 5 — the weakest-rated element on the home screen.**
+
+| Persona | Score | Verdict in one line |
+|---------|:---:|---------------------|
+| Priya | 3/5 | Looks once, after work — wants **caregiver attribution on the ribbon** |
+| Aisha | 2/5 | Glances for naps — wants a **running sleep total**; would sacrifice it first |
+| Marcus | 2/5 | Scrolls past — wants it to show **what's *next*** (a predicted due-zone), not just history |
+| Sofia | 2/5 | Decoration — dots don't show **volume**; would rather have a **multi-day** view |
+| Deepa | 2/5 | Decoration — wants **meds + prescribed-schedule target markers** |
+| Hannah | 2/5 | Scrolls past — wants **pump sessions** on it (needs pump first) |
+| Yuki | 2/5 | Decoration — wants **two stacked per-twin ribbons** |
+| Grace | 2/5 | Skips — small shapes force **legend look-ups**; wants a **plain-word summary** |
+
+### The pattern (unusually consistent)
+1. **Almost everyone glances, then scrolls past.** It's "pretty but decoration."
+   The hero line and stats answer their real questions faster.
+2. **It shows the *shape* of the day but not the *number* each person actually
+   wants** — and every persona named a different missing number (sleep total,
+   volume, med-schedule adherence, who-did-what, pump gap, second baby,
+   plain-word summary). A shape without the quantity is "a nice screensaver."
+3. **Several would give the space back** — to predictions/stats (Aisha), sharing
+   (Grace), a baby-switcher (Yuki), or a multi-day view (Sofia).
+4. **Two upgrade directions recur:** make it *forward-looking* (Marcus's
+   predicted due-zone; Deepa's schedule targets) and/or attach the *running
+   quantitative summary* people want rather than raw dots.
+5. The **moon/current-time marker** is "cute but does nothing" (Aisha).
+6. The **legend look-up friction** (shape → legend → back) specifically hurts the
+   ESL helper.
+
+### Takeaway
+The rhythm ribbon is currently the **lowest-value real estate on the home
+screen** — not disliked, but decorative for ~everyone, and it occupies prime
+vertical space. Options, cheapest first: (a) attach a plain running-summary line
+("3 feeds · 2 naps · 4h20m sleep") so it answers a question at a glance; (b) make
+it forward-looking by drawing the prediction engine's next-due window onto it;
+(c) shrink it and give the space to predictions/stats/sharing. Worth an explicit
+decision rather than leaving prime space to the least-used element.
