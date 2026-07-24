@@ -184,9 +184,20 @@
   .row { display: flex; align-items: center; gap: 13px; padding: 13px 0; min-height: 60px; }
   .rowbtn { all: unset; cursor: pointer; display: flex; align-items: center; gap: 13px; flex: 1; min-width: 0; border-radius: 16px; min-height: 48px; }
   .rowbtn:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
-  .glyph { width: 44px; height: 44px; border-radius: 17px; flex: none; display: grid; place-items: center; position: relative;
+  .glyph { width: 44px; height: 44px; border-radius: 17px; flex: none; display: grid; place-items: center; position: relative; z-index: 1;
     background: var(--s1); box-shadow: var(--lit), var(--shadow); }
   .glyph svg { width: 22px; height: 22px; }
+  /* vertical timeline spine: a line down the icon column, behind the opaque
+     glyph circles, so it reads as a connected chronological timeline (the
+     icons are the nodes). Extends into the row padding on both sides to
+     bridge the gap to neighbouring rows into one continuous line; trimmed
+     at the first/last node so it doesn't dangle past the ends. Lives inside
+     .rowbtn so it stays glued to the glyph as the row swipes. */
+  .rowbtn .spine { position: absolute; left: 21px; top: -13px; bottom: -13px; width: 2px; z-index: 0;
+    background: color-mix(in srgb, var(--faint) 45%, transparent); }
+  .timeline-list .row:first-child .spine { top: 50%; }
+  .timeline-list .row:last-child .spine { bottom: 50%; }
+  .timeline-list .row:only-child .spine { display: none; }
   .glyph .who { position: absolute; right: -5px; bottom: -5px; width: 19px; height: 19px; border-radius: 50%;
     display: grid; place-items: center; font-size: 10px; font-weight: 800; color: #fff; box-shadow: 0 0 0 2px var(--bg); }
   .row .t1 { font-size: 17px; font-weight: 650; }
@@ -470,17 +481,11 @@
     </div>
   </div>
 
-  <section class="ribbon">
-    <div class="rhead"><h2 id="tlTitle">Today's rhythm</h2><span class="meta" id="tlDate"></span></div>
-    <div class="timeline" id="timeline" role="img" aria-label="Timeline of today's feeds, sleeps and diapers"></div>
-    <div class="legend" id="legend"></div>
-  </section>
-
   <section class="strip" id="strip"></section>
 
   <section class="recent">
-    <h2><span id="raTitle">Recent</span><button class="seeall" id="seeAll">See all</button></h2>
-    <div id="list"></div>
+    <h2><span id="raTitle">Today</span><button class="seeall" id="seeAll">See all</button></h2>
+    <div id="list" class="timeline-list"></div>
   </section>
 
   <p class="foot">Prototype · sharing &amp; live sync are simulated on one device · <button id="resetBtn">reset demo</button></p>
@@ -701,8 +706,7 @@
     $("#greet").textContent = hh<5?t("g_night"):hh<12?t("g_morning"):hh<17?t("g_afternoon"):hh<22?t("g_evening"):t("g_night");
     $("#babyName").textContent = db.baby.name||"Baby";
     $("#babyAge").textContent = ageText()?"· "+ageText():"";
-    $("#tlDate").textContent = new Date().toLocaleDateString([], { weekday:"short", month:"short", day:"numeric" });
-    $("#tlTitle").textContent = t("todays_rhythm"); $("#raTitle").textContent = t("recent");
+    $("#raTitle").textContent = t("todays_rhythm"); // "Today" — the recent list IS the day timeline now
     $("#nurseLbl").textContent=t("nurse"); $("#bottleLbl").textContent=t("bottle");
     $("#diaperLbl").textContent=t("diaper");
     $("#solidsLbl").textContent=t("solids"); $("#bathLbl").textContent=t("bath"); $("#moreLbl").textContent=t("more");
@@ -711,7 +715,7 @@
     $("#bottleSub").textContent = db.pref.lastAmount? "tap = "+db.pref.lastAmount+" "+db.pref.unit : "";
     $("#sleepSub").textContent = db.timer&&db.timer.type==="sleep" ? "" : t("tap_start");
     $("#diaperSub").textContent = t("tap_wet");
-    renderWho(); renderHero(); renderPredict(); renderTimeline(); renderStrip(); renderList(); renderTimer();
+    renderWho(); renderHero(); renderPredict(); renderStrip(); renderList(); renderTimer();
     updateScrollHint(); // button visibility above can change how much is left to scroll to
   }
 
@@ -854,31 +858,6 @@
     });
   }
 
-  function renderTimeline() {
-    var tl=$("#timeline"); tl.innerHTML=""; var s=startOfDay(), DAY=86400000;
-    var tr=document.createElement("div"); tr.className="tl-track"; tl.appendChild(tr);
-    [6,12,18].forEach(function (h){ var g=mk("tl-grid"); g.style.left=(h/24*100)+"%"; tl.appendChild(g); });
-    [0,6,12,18,24].forEach(function (h){ var lab=mk("tl-hour"); lab.style.left=Math.min(97,Math.max(3,h/24*100))+"%";
-      lab.textContent = h===0?"12a":h===12?"12p":h===24?"":(h<12?h+"a":(h-12)+"p"); tl.appendChild(lab); });
-    todays().forEach(function (ev){
-      var left=(ev.start-s)/DAY*100;
-      if (ev.type==="sleep"&&ev.end){ var w=(ev.end-ev.start)/DAY*100; var b=mk("tl-bar"); b.style.left=left+"%"; b.style.width=Math.max(0.9,w)+"%";
-        b.setAttribute("aria-label", t("sleep")+", "+fmtClock(ev.start)+"–"+fmtClock(ev.end)); tl.appendChild(b); }
-      else if (ev.type==="feed"){ var f=mk("tl-feed"); f.style.left=left+"%"; f.setAttribute("aria-label", labelFor(ev)+", "+fmtClock(ev.start)); tl.appendChild(f); }
-      else if (ev.type==="diaper"){ var d=mk("tl-diaper"); d.style.left=left+"%"; d.setAttribute("aria-label", t("diaper")+" "+detailFor(ev)+", "+fmtClock(ev.start)); tl.appendChild(d); }
-    });
-    var p=(Date.now()-s)/DAY*100;
-    var now=mk("tl-now"); now.style.left=p+"%"; tl.appendChild(now);
-    var moon=mk("tl-moon"); moon.style.left=p+"%";
-    moon.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
-    tl.appendChild(moon);
-    $("#legend").innerHTML =
-      '<span><i class="lg-feed"></i>'+ (lang()==="tl"?"Pakain":"Feed") +'</span>'+
-      '<span><i class="lg-sleep"></i>'+t("sleep")+'</span>'+
-      '<span><i class="lg-diaper"></i>'+t("diaper")+'</span>';
-  }
-  function mk(cls){ var d=document.createElement("div"); d.className=cls; return d; }
-
   function renderStrip() {
     var t2=todays(), out="";
     (db.pref.stats||[]).slice(0,3).forEach(function (key){
@@ -914,6 +893,7 @@
           '<span class="sw-edit">Edit</span><button class="sw-del" tabindex="-1" aria-hidden="true">Delete</button>'+
         '</div>'+
         '<button class="rowbtn" aria-label="Edit '+labelFor(ev)+' at '+fmtClock(ev.start)+' — or swipe right to edit, swipe left to reveal delete">'+
+          '<span class="spine" aria-hidden="true"></span>'+
           '<div class="glyph" style="color:'+colorFor(ev.type)+'">'+ICONS[ev.type]+'<span class="who" style="background:'+who.color+'">'+who.badge+'</span></div>'+
           '<div style="flex:1;min-width:0"><div class="t1">'+labelFor(ev)+' <span style="color:var(--faint);font-weight:600">· '+detailFor(ev)+'</span></div>'+
           '<div class="t2">'+who.name+'</div></div>'+
