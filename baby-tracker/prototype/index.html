@@ -121,42 +121,28 @@
   .hero .next b { color: var(--gold-text); font-weight: 700; }
   .hero .why { font-size: 14px; color: var(--faint); }
 
-  /* ============ predict — the one-tap "do this next" cards ============ */
-  .predict-group { display: flex; flex-direction: column; gap: 9px; }
-  .predict { all: unset; cursor: pointer; box-sizing: border-box; display: flex; align-items: center; gap: 13px;
-    width: 100%; padding: 14px 15px; border-radius: 24px;
+  /* ============ predict — two side-by-side "do this next" tiles ============
+     Both predictions get equal, large visual weight now — the manual row
+     below is explicitly secondary, deferring to whatever's predicted. */
+  .predict-group { display: flex; flex-direction: column; gap: 10px; }
+  .predict-label { font-size: 13px; font-weight: 700; letter-spacing: .02em; color: var(--faint); padding-left: 2px; }
+  .predict-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .predict-tiles.single { grid-template-columns: 1fr; }
+  .predict-tile { all: unset; cursor: pointer; box-sizing: border-box; display: flex; flex-direction: column;
+    align-items: flex-start; gap: 9px; padding: 16px; border-radius: 24px; min-height: 110px;
     background: linear-gradient(160deg, color-mix(in srgb, var(--gold) 16%, var(--s1)), var(--s1));
-    box-shadow: var(--lit), var(--shadow); min-height: 68px;
-    transition: transform .32s cubic-bezier(.34,1.4,.64,1); }
-  .predict:active { transform: scale(.97); }
-  .predict:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
-  .predict.pop { animation: predictpop .5s cubic-bezier(.34,1.56,.64,1); }
+    box-shadow: var(--lit), var(--shadow); transition: transform .32s cubic-bezier(.34,1.4,.64,1); }
+  .predict-tile:active { transform: scale(.96); }
+  .predict-tile:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  .predict-tile.pop { animation: predictpop .5s cubic-bezier(.34,1.56,.64,1); }
   @keyframes predictpop { 0% { transform: scale(.9); } 55% { transform: scale(1.035); } 100% { transform: scale(1); } }
-  .predict-ic { width: 48px; height: 48px; border-radius: 17px; flex: none; display: grid; place-items: center;
+  .predict-tile-ic { width: 40px; height: 40px; border-radius: 14px; display: grid; place-items: center;
     background: color-mix(in srgb, currentColor 18%, var(--s1)); }
-  .predict-ic svg { width: 25px; height: 25px; }
-  .predict-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; text-align: left; }
-  .predict-lead { font-size: 13.5px; font-weight: 700; color: var(--gold-text); }
-  .predict-msg { font-size: 18px; font-weight: 700; color: var(--text); }
-  .predict-why { font-size: 13.5px; color: var(--faint); }
-  .predict-go { flex: none; font-size: 14px; font-weight: 700; color: var(--gold-text);
-    padding: 10px 15px; border-radius: 20px; background: color-mix(in srgb, var(--gold) 16%, transparent); white-space: nowrap; }
-  body.simple .predict-why { display: none; }
-  body.simple .predict { min-height: 82px; }
-  body.simple .predict-msg { font-size: 19.5px; }
-
-  .predict2 { all: unset; cursor: pointer; box-sizing: border-box; display: flex; align-items: center; gap: 11px;
-    width: 100%; padding: 12px 15px 12px 12px; border-radius: 18px;
-    background: var(--s2); box-shadow: var(--lit); min-height: 50px;
-    transition: transform .32s cubic-bezier(.34,1.4,.64,1); }
-  .predict2:active { transform: scale(.97); }
-  .predict2:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
-  .predict2-ic { width: 29px; height: 29px; border-radius: 11px; flex: none; display: grid; place-items: center;
-    background: color-mix(in srgb, currentColor 18%, var(--s1)); }
-  .predict2-ic svg { width: 16px; height: 16px; }
-  .predict2-msg { flex: 1; font-size: 14.5px; font-weight: 650; color: var(--dim); text-align: left; }
-  .predict2-go { flex: none; font-size: 18px; font-weight: 800; color: var(--faint); }
-  body.simple .predict2 { display: none; }
+  .predict-tile-ic svg { width: 21px; height: 21px; }
+  .predict-tile-lead { font-size: 12px; font-weight: 700; color: var(--gold-text); }
+  .predict-tile-msg { font-size: 16px; font-weight: 700; color: var(--text); line-height: 1.25; text-align: left; }
+  body.simple .predict-tile-msg { font-size: 18px; }
+  body.simple .predict-tile { min-height: 120px; }
 
   /* ============ ribbon — signature surface ============ */
   .ribbon { background: var(--s1); border-radius: 26px; padding: 20px 18px 16px; box-shadow: var(--lit), var(--shadow); }
@@ -231,37 +217,37 @@
   .timerbar .side:focus-visible, .timerbar .stop:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
   @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1);} 50% { opacity: .4; transform: scale(.82);} }
 
-  /* ============ action bar — stable, big, 1-tap ============ */
+  /* ============ action bar — secondary now: predictions carry the primary
+     visual weight above, so this row is compact and can hold more than the
+     original 4 (core actions minus whichever are predicted, plus Solids,
+     Bath, and a More chip for Meds/Temp) without dominating the screen. ===== */
   .actionbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
-    padding: 12px 16px calc(16px + env(safe-area-inset-bottom)); display: flex; justify-content: center;
+    padding: 10px 14px calc(14px + env(safe-area-inset-bottom)); display: flex; justify-content: center;
     background: linear-gradient(180deg, transparent, var(--bg) 34%); }
-  .actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; width: min(480px, 100%); }
-  .act { all: unset; cursor: pointer; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 6px;
-    padding: 16px 4px 14px; border-radius: 26px; font-weight: 700; font-size: 14.5px; min-height: 84px;
+  .actions { display: flex; flex-wrap: wrap; gap: 7px; width: min(480px, 100%); justify-content: center; }
+  .act { all: unset; cursor: pointer; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 10px 3px 9px; border-radius: 20px; font-weight: 700; font-size: 11px; min-height: 62px;
+    flex: 1 1 0; min-width: 46px;
     background: var(--s1); box-shadow: var(--lit), var(--shadow);
     transition: transform .3s cubic-bezier(.34,1.4,.64,1); color: var(--text); position: relative; user-select: none; -webkit-user-select: none; }
   .act:active { transform: scale(.9); }
   .act:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
-  .act svg { width: 28px; height: 28px; }
-  .act.nurse { color: var(--feed); } .act.bottle { color: var(--feed); }
+  .act svg { width: 21px; height: 21px; }
+  .act.nurse { color: var(--feed); } .act.bottle { color: var(--feed); } .act.solids { color: var(--feed); }
   .act.sleep { color: var(--sleep); } .act.diaper { color: var(--diaper); }
-  .act .lbl { color: var(--text); }
-  .act .sub2 { font-size: 12px; font-weight: 600; color: var(--faint); margin-top: -3px; }
+  .act.bath { color: var(--gold-text); } .act.more { color: var(--dim); }
+  .act .lbl { color: var(--text); white-space: nowrap; }
+  .act .sub2 { display: none; } /* dropped: no room in the compact row; the hold-hint + coach-mark still teach the gesture */
   .act.armed { background: color-mix(in srgb, var(--sleep) 22%, var(--s1)); box-shadow: var(--lit), var(--shadow), 0 0 14px color-mix(in srgb, var(--sleep) 40%, transparent); }
-  /* Simple mode = fewer things on screen (content reduction), independent of size.
-     "Larger text & controls" (body.access, via --ts zoom below) is the sizing lever —
-     a caregiver can have either, both, or neither. Don't infer one from the other. */
-  body.simple .act .sub2 { display: none; }
+  /* Simple mode hides the lower-frequency extras (Solids/Bath/More), keeping
+     only the core 4 (minus whatever's predicted) — consistent with Simple
+     mode's job of showing fewer things, independent of the separate
+     "Larger text & controls" sizing lever. */
+  body.simple .act.extra { display: none; }
 
   /* hold-progress hint on long-pressable buttons */
-  .act .holdhint { position: absolute; top: 8px; right: 10px; font-size: 10.5px; font-weight: 800; color: var(--faint); letter-spacing: .05em; }
+  .act .holdhint { position: absolute; top: 4px; right: 5px; font-size: 7.5px; font-weight: 800; color: var(--faint); letter-spacing: .03em; }
   body.simple .act .holdhint { display: none; }
-
-  /* ties the predict card to its matching bottom button — a plain dot, not
-     glow, since glow is reserved for "happening right now" elsewhere */
-  .act .predictdot { position: absolute; top: 9px; left: 10px; width: 8px; height: 8px; border-radius: 50%;
-    background: var(--gold); display: none; }
-  .act.predicted .predictdot { display: block; }
 
   /* ============ sheets ============ */
   .scrim { position: fixed; inset: 0; z-index: 50; background: var(--scrim); backdrop-filter: blur(2px);
@@ -448,21 +434,20 @@
     <span class="big disp tnum" id="heroBig">—</span>
   </section>
 
-  <div class="predict-group">
-    <button class="predict" id="predictBtn" hidden>
-      <span class="predict-ic" id="predictIc"></span>
-      <span class="predict-txt">
-        <span class="predict-lead" id="predictLead">Coming up</span>
-        <span class="predict-msg" id="predictMsg"></span>
-        <span class="predict-why" id="predictWhy"></span>
-      </span>
-      <span class="predict-go">Log it</span>
-    </button>
-    <button class="predict2" id="predict2Btn" hidden>
-      <span class="predict2-ic" id="predict2Ic"></span>
-      <span class="predict2-msg" id="predict2Msg"></span>
-      <span class="predict2-go" aria-hidden="true">›</span>
-    </button>
+  <div class="predict-group" id="predictGroup" hidden>
+    <div class="predict-label" id="predictLabel">Predicted for you</div>
+    <div class="predict-tiles" id="predictTiles">
+      <button class="predict-tile" id="predictTile0" hidden>
+        <span class="predict-tile-ic"></span>
+        <span class="predict-tile-lead"></span>
+        <span class="predict-tile-msg"></span>
+      </button>
+      <button class="predict-tile" id="predictTile1" hidden>
+        <span class="predict-tile-ic"></span>
+        <span class="predict-tile-lead"></span>
+        <span class="predict-tile-msg"></span>
+      </button>
+    </div>
   </div>
 
   <section class="ribbon">
@@ -491,30 +476,38 @@
 <nav class="actionbar" aria-label="Log an event">
   <div class="actions">
     <button class="act nurse" id="actNurse" aria-label="Start nursing — tap to start on the usual side, hold for the other side">
-      <span class="predictdot" aria-hidden="true"></span>
       <span class="holdhint">HOLD ⇄</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v4.5l3 2"/></svg>
       <span class="lbl" id="nurseLbl">Nurse</span>
       <span class="sub2" id="nurseSub">tap = Left</span>
     </button>
     <button class="act bottle" id="actBottle">
-      <span class="predictdot" aria-hidden="true"></span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2h8M9 2l.6 3M15 2l-.6 3"/><path d="M7.5 8.5c0-1.7 1.2-3 2.7-3.4h3.6c1.5.4 2.7 1.7 2.7 3.4V19a3 3 0 0 1-3 3H10.5a3 3 0 0 1-3-3z"/><path d="M8 12h4M8 15.5h4"/></svg>
       <span class="lbl" id="bottleLbl">Bottle</span>
       <span class="sub2" id="bottleSub"></span>
     </button>
     <button class="act sleep" id="actSleep">
-      <span class="predictdot" aria-hidden="true"></span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
       <span class="lbl" id="sleepLbl">Sleep</span>
       <span class="sub2" id="sleepSub">tap = start</span>
     </button>
     <button class="act diaper" id="actDiaper" aria-label="Log diaper — tap for wet, hold to choose">
-      <span class="predictdot" aria-hidden="true"></span>
       <span class="holdhint">HOLD ⋯</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18v3a9 9 0 0 1-9 9 9 9 0 0 1-9-9z"/><path d="M3 6c4 1.5 14 1.5 18 0"/></svg>
       <span class="lbl" id="diaperLbl">Diaper</span>
       <span class="sub2" id="diaperSub">tap = wet</span>
+    </button>
+    <button class="act solids extra" id="actSolids">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a8 8 0 0 0 16 0"/><path d="M4 11h16"/><path d="M17 11V4c-1.6 0-2.5 1.6-2.5 3.5S15.4 11 17 11z"/></svg>
+      <span class="lbl" id="solidsLbl">Solids</span>
+    </button>
+    <button class="act bath extra" id="actBath">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16v3a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z"/><path d="M7 12V6a2 2 0 0 1 4 0"/></svg>
+      <span class="lbl" id="bathLbl">Bath</span>
+    </button>
+    <button class="act more extra" id="actMoreRow" aria-label="More: meds, temperature and other logs">
+      <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
+      <span class="lbl" id="moreLbl">More</span>
     </button>
   </div>
 </nav>
@@ -541,7 +534,10 @@
       simple_mode:"Simple mode", switch_back:"Switch back", logging_as:"logging as",
       nothing:"All quiet for now", tapbelow:"Tap a button below when you're ready",
       log_bottle:"Log bottle", log_solids:"Log solids", choose_diaper:"Log a diaper", onetap:"One tap.",
-      never_paywalled:"Free forever — sharing is never behind a paywall." },
+      never_paywalled:"Free forever — sharing is never behind a paywall.",
+      bath:"Bath", meds:"Meds", temp:"Temp", more:"More", predicted_for_you:"Predicted for you",
+      log_meds:"Log meds", log_temp:"Log temperature", meds_name_ph:"What medicine? (e.g. Tylenol)",
+      meds_dose_ph:"Dose (e.g. 2.5ml)", more_sub:"Less-frequent logs.", coming_soon:"Coming soon" },
     tl: { g_morning:"Magandang umaga", g_afternoon:"Magandang hapon", g_evening:"Magandang gabi", g_night:"Gabing-gabi na",
       nurse:"Pasuso", bottle:"Bote", sleep:"Tulog", diaper:"Lampin", wake:"Gising",
       left:"Kaliwa", right:"Kanan", wet:"Basa", dirty:"Dumi", mixed:"Basa at dumi", solids:"Pagkain", nursing:"Pasuso",
@@ -552,7 +548,10 @@
       simple_mode:"Simpleng mode", switch_back:"Bumalik", logging_as:"nagre-record bilang",
       nothing:"Tahimik muna", tapbelow:"Pindutin ang buton sa ibaba kapag handa na",
       log_bottle:"I-record ang bote", log_solids:"I-record ang pagkain", choose_diaper:"Mag-record ng lampin", onetap:"Isang pindot lang.",
-      never_paywalled:"Libre magpakailanman — hindi kailanman babayaran ang pagbabahagi." }
+      never_paywalled:"Libre magpakailanman — hindi kailanman babayaran ang pagbabahagi.",
+      bath:"Ligo", meds:"Gamot", temp:"Lagnat", more:"Iba pa", predicted_for_you:"Hula para sa iyo",
+      log_meds:"I-record ang gamot", log_temp:"I-record ang temperatura", meds_name_ph:"Anong gamot? (hal. Tylenol)",
+      meds_dose_ph:"Dosis (hal. 2.5ml)", more_sub:"Bihirang i-record.", coming_soon:"Paparating na" }
   };
 
   /* `simple` (fewer things on screen) and `access` (larger text & controls) are
@@ -623,13 +622,27 @@
   var ICONS = {
     feed:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2h8M9 2l.6 3M15 2l-.6 3"/><path d="M7.5 8.5c0-1.7 1.2-3 2.7-3.4h3.6c1.5.4 2.7 1.7 2.7 3.4V19a3 3 0 0 1-3 3H10.5a3 3 0 0 1-3-3z"/><path d="M8 12h4"/></svg>',
     sleep:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
-    diaper:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18v3a9 9 0 0 1-9 9 9 9 0 0 1-9-9z"/><path d="M3 6c4 1.5 14 1.5 18 0"/></svg>'
+    diaper:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18v3a9 9 0 0 1-9 9 9 9 0 0 1-9-9z"/><path d="M3 6c4 1.5 14 1.5 18 0"/></svg>',
+    solids:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a8 8 0 0 0 16 0"/><path d="M4 11h16"/><path d="M17 11V4c-1.6 0-2.5 1.6-2.5 3.5S15.4 11 17 11z"/></svg>',
+    bath:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16v3a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z"/><path d="M7 12V6a2 2 0 0 1 4 0"/></svg>',
+    meds:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="8" width="19" height="8" rx="4"/><line x1="12" y1="8" x2="12" y2="16"/></svg>',
+    temp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0z"/><path d="M12 8v5"/></svg>'
   };
-  function colorFor(x) { return x==="feed"?"var(--feed)":x==="sleep"?"var(--sleep)":"var(--diaper)"; }
+  function colorFor(x) {
+    if (x==="feed") return "var(--feed)";
+    if (x==="sleep") return "var(--sleep)";
+    if (x==="diaper") return "var(--diaper)";
+    return "var(--gold-text)"; // bath/meds/temp — secondary/extra types share the accent hue
+  }
 
   function labelFor(ev) {
     if (ev.type==="feed") return ev.sub==="nursing"?t("nursing"):ev.sub==="bottle"?t("bottle"):ev.sub==="solids"?t("solids"):"Feed";
-    return ev.type==="sleep"?t("sleep"):ev.type==="diaper"?t("diaper"):"Event";
+    if (ev.type==="sleep") return t("sleep");
+    if (ev.type==="diaper") return t("diaper");
+    if (ev.type==="bath") return t("bath");
+    if (ev.type==="meds") return t("meds");
+    if (ev.type==="temp") return t("temp");
+    return "Event";
   }
   function detailFor(ev) {
     if (ev.type==="feed") {
@@ -639,6 +652,8 @@
     }
     if (ev.type==="sleep") return ev.end?durShort(ev.end-ev.start):"…";
     if (ev.type==="diaper") return ev.sub==="wet"?t("wet"):ev.sub==="dirty"?t("dirty"):t("mixed");
+    if (ev.type==="temp") return ev.value.toFixed(1)+"°"+ev.unit;
+    if (ev.type==="meds") return ev.name+(ev.dose?" · "+ev.dose:"");
     return "";
   }
   function nextSide() {
@@ -665,6 +680,8 @@
     $("#tlTitle").textContent = t("todays_rhythm"); $("#raTitle").textContent = t("recent");
     $("#nurseLbl").textContent=t("nurse"); $("#bottleLbl").textContent=t("bottle");
     $("#diaperLbl").textContent=t("diaper");
+    $("#solidsLbl").textContent=t("solids"); $("#bathLbl").textContent=t("bath"); $("#moreLbl").textContent=t("more");
+    $("#predictLabel").textContent=t("predicted_for_you");
     $("#nurseSub").textContent="tap = "+(nextSide()==="R"?t("right"):t("left"));
     $("#bottleSub").textContent = db.pref.lastAmount? "tap = "+db.pref.lastAmount+" "+db.pref.unit : "";
     $("#sleepSub").textContent = db.timer&&db.timer.type==="sleep" ? "" : t("tap_start");
@@ -764,34 +781,39 @@
     return { icon:icon, color:color, label:label, actFn:actFn, badgeId:badgeId, cycleWord:cycleWord };
   }
 
-  var lastPredictMsg=null;
+  /* Renders the (up to 2) predicted tiles AND, in the same pass, hides
+     whichever of the 4 core manual buttons are now covered by a tile —
+     the row defers to the prediction instead of duplicating it. Solids/
+     Bath/More are never touched here; they have no predictable cycle, so
+     they stay as always-available constants in the row. */
+  var lastPredictMsgs=[null,null];
   function renderPredict() {
-    var btn=$("#predictBtn"), btn2=$("#predict2Btn");
-    ["actNurse","actBottle","actSleep","actDiaper"].forEach(function (id){ $("#"+id).classList.remove("predicted"); });
+    var group=$("#predictGroup"), tiles=$("#predictTiles"), t0=$("#predictTile0"), t1=$("#predictTile1");
+    ["actNurse","actBottle","actSleep","actDiaper"].forEach(function (id){ $("#"+id).hidden=false; });
     var list=computePredictions();
-    if (!list.length) { btn.hidden=true; btn.onclick=null; btn2.hidden=true; btn2.onclick=null; lastPredictMsg=null; return; }
-
-    var p1=list[0], a1=buildPredictAction(p1);
-    $("#predictIc").innerHTML=a1.icon; $("#predictIc").style.color=a1.color;
-    $("#predictLead").textContent = p1.ratio>=1 ? "Ready when you are" : "Coming up";
-    $("#predictMsg").textContent = a1.label;
-    $("#predictWhy").textContent = "Usually ~"+durShort(p1.avg)+" between "+a1.cycleWord+" · last one "+durShort(p1.elapsed)+" ago";
-    btn.setAttribute("aria-label", "Log "+a1.label+" now — predicted next action");
-    if (btn.hidden || lastPredictMsg!==a1.label) { btn.classList.remove("pop"); void btn.offsetWidth; btn.classList.add("pop"); }
-    btn.hidden=false;
-    btn.onclick=function (){ buzz(16); a1.actFn(); };
-    if (a1.badgeId) $("#"+a1.badgeId).classList.add("predicted");
-    lastPredictMsg=a1.label;
-
-    if (list.length>1) {
-      var p2=list[1], a2=buildPredictAction(p2);
-      $("#predict2Ic").innerHTML=a2.icon; $("#predict2Ic").style.color=a2.color;
-      $("#predict2Msg").textContent = "Also: "+a2.label;
-      btn2.setAttribute("aria-label", "Log "+a2.label+" now — second predicted option");
-      btn2.hidden=false;
-      btn2.onclick=function (){ buzz(16); a2.actFn(); };
-      if (a2.badgeId) $("#"+a2.badgeId).classList.add("predicted");
-    } else { btn2.hidden=true; btn2.onclick=null; }
+    if (!list.length) {
+      group.hidden=true;
+      t0.hidden=true; t0.onclick=null; t1.hidden=true; t1.onclick=null;
+      lastPredictMsgs=[null,null];
+      return;
+    }
+    group.hidden=false;
+    tiles.classList.toggle("single", list.length<2);
+    [t0, t1].forEach(function (tile, i) {
+      var p=list[i];
+      if (!p) { tile.hidden=true; tile.onclick=null; lastPredictMsgs[i]=null; return; }
+      var a=buildPredictAction(p);
+      tile.querySelector(".predict-tile-ic").innerHTML=a.icon;
+      tile.querySelector(".predict-tile-ic").style.color=a.color;
+      tile.querySelector(".predict-tile-lead").textContent = p.ratio>=1 ? "Ready" : "Soon";
+      tile.querySelector(".predict-tile-msg").textContent = a.label;
+      tile.setAttribute("aria-label", "Log "+a.label+" now — predicted next action");
+      if (tile.hidden || lastPredictMsgs[i]!==a.label) { tile.classList.remove("pop"); void tile.offsetWidth; tile.classList.add("pop"); }
+      tile.hidden=false;
+      tile.onclick=function (){ buzz(16); a.actFn(); };
+      if (a.badgeId) $("#"+a.badgeId).hidden=true; // this action moved up into a tile — don't show it twice
+      lastPredictMsgs[i]=a.label;
+    });
   }
 
   function renderTimeline() {
@@ -1078,6 +1100,64 @@
     var body=$("#sheet"), resolve=wireWhen(body);
     body.querySelector("#logSolid").addEventListener("click", function (){ logSolids(body.querySelector("#foodInput").value.trim(), resolve()); });
   }
+  function logBath(when) { addEvent({ type:"bath", start:when }, t("bath")+" "+t("saved")); }
+
+  function tempSheet() {
+    var unit=db.pref.tempUnit||"F", value=db.pref.lastTemp||(unit==="F"?98.6:37.0);
+    openSheet('<h3 id="sheetTitle">'+t("temp")+'</h3><p class="sub">'+t("onetap")+'</p><div id="tempbody"></div>');
+    paint();
+    function paint() {
+      var body=$("#tempbody");
+      body.innerHTML='<div class="unitrow"><button data-u="F" aria-pressed="'+(unit==="F")+'">°F</button><button data-u="C" aria-pressed="'+(unit==="C")+'">°C</button></div>'+
+        '<div class="stepper"><div class="amt"><span id="tempV" class="tnum disp">'+value.toFixed(1)+'</span> <small>°'+unit+'</small></div>'+
+        '<div class="pm"><button class="rnd" id="tminus" aria-label="less">−</button><button class="rnd" id="tplus" aria-label="more">+</button></div></div>'+
+        whenControl()+
+        '<div class="stickycta"><button class="cta" id="logTemp">'+t("log_temp")+'</button></div>';
+      function upd(){ $("#tempV").textContent=value.toFixed(1); }
+      body.querySelector("#tminus").addEventListener("click", function (){ value=+(value-0.1).toFixed(1); upd(); });
+      body.querySelector("#tplus").addEventListener("click", function (){ value=+(value+0.1).toFixed(1); upd(); });
+      body.querySelectorAll("[data-u]").forEach(function (b){ b.addEventListener("click", function (){
+        var nu=b.dataset.u; if (nu===unit) return;
+        value = nu==="C" ? +((value-32)*5/9).toFixed(1) : +((value*9/5)+32).toFixed(1);
+        unit=nu; db.pref.tempUnit=unit; persist(); paint();
+      }); });
+      var resolve=wireWhen(body);
+      body.querySelector("#logTemp").addEventListener("click", function (){ logTemp(value, unit, resolve()); });
+    }
+  }
+  function logTemp(value, unit, when) {
+    db.pref.lastTemp=value; db.pref.tempUnit=unit;
+    addEvent({ type:"temp", value:value, unit:unit, start:when }, t("temp")+" · "+value.toFixed(1)+"°"+unit+" "+t("saved"));
+  }
+
+  function medsSheet() {
+    openSheet('<h3 id="sheetTitle">'+t("meds")+'</h3><p class="sub"></p>'+
+      '<input class="field" id="medName" placeholder="'+t("meds_name_ph")+'" autocomplete="off" />'+
+      '<input class="field" id="medDose" placeholder="'+t("meds_dose_ph")+'" autocomplete="off" />'+
+      whenControl()+
+      '<div class="stickycta"><button class="cta" id="logMedsBtn">'+t("log_meds")+'</button></div>');
+    var body=$("#sheet"), resolve=wireWhen(body);
+    body.querySelector("#logMedsBtn").addEventListener("click", function (){
+      logMeds(body.querySelector("#medName").value.trim(), body.querySelector("#medDose").value.trim(), resolve());
+    });
+  }
+  function logMeds(name, dose, when) {
+    addEvent({ type:"meds", name:name||t("meds"), dose:dose||"", start:when },
+      (name||t("meds"))+(dose?" · "+dose:"")+" "+t("saved"));
+  }
+
+  function moreShortcutsSheet() {
+    openSheet('<h3 id="sheetTitle">'+t("more")+'</h3><p class="sub">'+t("more_sub")+'</p>'+
+      '<div class="seg" style="margin-bottom:6px">'+
+      '<button class="chip" data-go="meds">'+ICONS.meds+'<span class="cl">'+t("meds")+'</span></button>'+
+      '<button class="chip" data-go="temp">'+ICONS.temp+'<span class="cl">'+t("temp")+'</span></button>'+
+      '</div>'+
+      '<h4>'+t("coming_soon")+'</h4><div class="picker">'+["Pump","Growth","Export"].map(function (m){ return '<button data-soon="'+m+'">'+m+'</button>'; }).join("")+'</div>');
+    $("#sheet").querySelectorAll("[data-go]").forEach(function (b){ b.addEventListener("click", function (){
+      if (b.dataset.go==="meds") medsSheet(); else tempSheet();
+    }); });
+    $("#sheet").querySelectorAll("[data-soon]").forEach(function (b){ b.addEventListener("click", function (){ toast('"'+b.dataset.soon+'" is on the roadmap ✨'); }); });
+  }
 
   function editSheet(id) {
     var ev=db.events.filter(function (x){return x.id===id;})[0]; if (!ev) return;
@@ -1132,7 +1212,7 @@
       '<div class="toggle"><div><div class="tl">Larger text &amp; controls</div><div class="td">Bigger type and tap targets throughout — independent of Simple mode.</div></div><button class="sw" id="swAccess" aria-pressed="'+me.access+'" role="switch" aria-label="Larger text and controls"></button></div>'+
       '<div class="toggle"><div><div class="tl">Language</div><div class="td">Demo: English / Tagalog (placeholder — needs native review).</div></div>'+
         '<div class="unitrow" style="margin:0"><button id="langEn" aria-pressed="'+(me.lang!=="tl")+'">EN</button><button id="langTl" aria-pressed="'+(me.lang==="tl")+'">TL</button></div></div>'+
-      '<h4>More (coming soon)</h4><div class="picker">'+["Pump","Temp","Meds","Growth","Bath","Export"].map(function (m){ return '<button data-soon="'+m+'">'+m+'</button>'; }).join("")+'</div>');
+      '<h4>More (coming soon)</h4><div class="picker">'+["Pump","Growth","Export"].map(function (m){ return '<button data-soon="'+m+'">'+m+'</button>'; }).join("")+'</div>');
     $("#tilePick").querySelectorAll("[data-tile]").forEach(function (b){ b.addEventListener("click", function (){
       var k=b.dataset.tile, arr=(db.pref.stats||[]).slice(), i=arr.indexOf(k);
       if (i>=0) arr.splice(i,1); else { arr.push(k); if (arr.length>3) arr.shift(); }
@@ -1175,6 +1255,9 @@
     if (db.timer&&db.timer.type==="sleep") stopTimer();
     else if (db.timer) toast("Stop the nursing timer first");
     else startTimer("sleep"); });
+  $("#actSolids").addEventListener("click", solidsSheet);
+  $("#actBath").addEventListener("click", function (){ buzz(); logBath(Date.now()); });
+  $("#actMoreRow").addEventListener("click", moreShortcutsSheet);
   $("#babyBtn").addEventListener("click", babySheet);
   $("#whoChip").addEventListener("click", shareSheet);
   $("#setBtn").addEventListener("click", settingsSheet);
