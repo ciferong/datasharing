@@ -215,6 +215,11 @@
   .tl-body .t2 { font-size: 13px; color: var(--faint); margin-top: 1px; }
   .empty { text-align: center; color: var(--faint); font-size: 16px; padding: 22px 0 6px; }
   .empty .big { font-size: 30px; margin-bottom: 8px; }
+  /* day divider — a clear "———— Yesterday ————" break between calendar days
+     inside the rolling 24h timeline. */
+  .daydiv { display: flex; align-items: center; gap: 12px; padding: 10px 2px 12px; }
+  .daydiv .ln { flex: 1; height: 1px; background: color-mix(in srgb, var(--faint) 26%, transparent); }
+  .daydiv .lbl { font-size: 11.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); white-space: nowrap; }
 
   /* ============ timer banner — the whole UI while running ============ */
   .timerbar { position: fixed; left: 50%; transform: translateX(-50%);
@@ -583,7 +588,8 @@
       never_paywalled:"Free forever — sharing is never behind a paywall.",
       bath:"Bath", meds:"Meds", temp:"Temp", more:"More", predicted_for_you:"Predicted for you",
       log_meds:"Log meds", log_temp:"Log temperature", meds_name_ph:"What medicine? (e.g. Tylenol)",
-      meds_dose_ph:"Dose (e.g. 2.5ml)", more_sub:"Less-frequent logs.", coming_soon:"Coming soon" },
+      meds_dose_ph:"Dose (e.g. 2.5ml)", more_sub:"Less-frequent logs.", coming_soon:"Coming soon",
+      day_today:"Today", day_yesterday:"Yesterday" },
     tl: { g_morning:"Magandang umaga", g_afternoon:"Magandang hapon", g_evening:"Magandang gabi", g_night:"Gabing-gabi na",
       nurse:"Pasuso", bottle:"Bote", sleep:"Tulog", diaper:"Lampin", wake:"Gising",
       left:"Kaliwa", right:"Kanan", wet:"Basa", dirty:"Dumi", mixed:"Basa at dumi", solids:"Pagkain", nursing:"Pasuso",
@@ -597,7 +603,8 @@
       never_paywalled:"Libre magpakailanman — hindi kailanman babayaran ang pagbabahagi.",
       bath:"Ligo", meds:"Gamot", temp:"Lagnat", more:"Iba pa", predicted_for_you:"Hula para sa iyo",
       log_meds:"I-record ang gamot", log_temp:"I-record ang temperatura", meds_name_ph:"Anong gamot? (hal. Tylenol)",
-      meds_dose_ph:"Dosis (hal. 2.5ml)", more_sub:"Bihirang i-record.", coming_soon:"Paparating na" }
+      meds_dose_ph:"Dosis (hal. 2.5ml)", more_sub:"Bihirang i-record.", coming_soon:"Paparating na",
+      day_today:"Ngayong araw", day_yesterday:"Kahapon" }
   };
 
   /* `simple` (fewer things on screen) and `access` (larger text & controls) are
@@ -635,6 +642,15 @@
   function seed() {
     var now = Date.now(), H = 3600000, M = 60000, e = [];
     function a(o){ e.push(o); }
+    // —— the previous evening + overnight, so the rolling 24h window spans two
+    // calendar days and the day divider is visible in the demo ——
+    a({ id:uid(), type:"feed", sub:"bottle", amount:100, unit:"ml", by:"sam",  start: now-21.5*H });
+    a({ id:uid(), type:"diaper", sub:"dirty",              by:"sam",  start: now-20.9*H });
+    a({ id:uid(), type:"sleep",                            by:"you",  start: now-19.6*H, end: now-18.3*H });
+    a({ id:uid(), type:"feed", sub:"nursing", side:"R",    by:"you",  start: now-13.7*H, end: now-13.7*H+17*M });
+    a({ id:uid(), type:"sleep",                            by:"you",  start: now-12.9*H, end: now-8.4*H });
+    a({ id:uid(), type:"feed", sub:"nursing", side:"L",    by:"grace",start: now-8.1*H,  end: now-8.1*H+15*M });
+    // —— the current day ——
     a({ id:uid(), type:"feed", sub:"nursing", side:"L", by:"sam",   start: now-6.7*H, end: now-6.7*H+16*M });
     a({ id:uid(), type:"diaper", sub:"wet",   by:"sam",   start: now-6.4*H });
     a({ id:uid(), type:"sleep",               by:"you",   start: now-6.1*H, end: now-4.2*H });
@@ -656,6 +672,15 @@
   function fmtClock(ts) { return new Date(ts).toLocaleTimeString([], { hour:"numeric", minute:"2-digit" }); }
   function fmtClockParts(ts) { var d=new Date(ts), h=d.getHours(), ap=h<12?"AM":"PM", h12=h%12||12, m=String(d.getMinutes()).padStart(2,"0"); return { hm:h12+":"+m, ap:ap }; }
   function catClass(type) { return type==="feed"?"feed":type==="sleep"?"sleep":type==="diaper"?"diaper":"other"; }
+  // calendar-day identity + a friendly label ("Today"/"Yesterday"/"Wed, Jul 23")
+  // for the day dividers in the 24h timeline.
+  function dayKey(ts) { var d=new Date(ts); return d.getFullYear()+"-"+d.getMonth()+"-"+d.getDate(); }
+  function dayLabel(ts) {
+    var d=new Date(ts), today=new Date(), yest=new Date(); yest.setDate(yest.getDate()-1);
+    if (dayKey(ts)===dayKey(today.getTime())) return t("day_today");
+    if (dayKey(ts)===dayKey(yest.getTime())) return t("day_yesterday");
+    return d.toLocaleDateString([], { weekday:"short", month:"short", day:"numeric" });
+  }
   function agoStr(ts) { var s=Math.max(0,Math.floor((Date.now()-ts)/1000));
     if (s<60) return "now"; var m=Math.floor(s/60); if (m<60) return m+"m";
     var h=Math.floor(m/60), r=m%60; return r?h+"h "+r+"m":h+"h"; }
@@ -900,9 +925,24 @@
 
   function renderList() {
     var list=$("#list"); list.innerHTML="";
-    var evs=db.events.slice().sort(function (a,b){return b.start-a.start;});
+    // last 24 hours only, newest first — the timeline is a rolling day, not the
+    // whole history. A day divider marks each calendar-day boundary inside it.
+    var cutoff=Date.now()-86400000;
+    var evs=db.events.filter(function (x){ return x.start>=cutoff; }).sort(function (a,b){return b.start-a.start;});
     if (!evs.length){ list.innerHTML='<div class="empty"><div class="big">🌙</div>'+t("nothing")+'<br>'+t("tapbelow")+'</div>'; return; }
+    var lastDay=null;
     evs.forEach(function (ev){
+      var dk=dayKey(ev.start);
+      if (dk!==lastDay) {
+        // no divider above the newest group (implicitly "today"); one appears at
+        // each boundary as the list crosses down into an earlier calendar day.
+        if (lastDay!==null) {
+          var d=document.createElement("div"); d.className="daydiv";
+          d.innerHTML='<span class="ln"></span><span class="lbl">'+dayLabel(ev.start)+'</span><span class="ln"></span>';
+          list.appendChild(d);
+        }
+        lastDay=dk;
+      }
       var who=careById(ev.by||"you");
       var cp=fmtClockParts(ev.start);
       var det=detailFor(ev);
