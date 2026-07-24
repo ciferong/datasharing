@@ -165,30 +165,24 @@
   .predict-tile-lead { grid-column: 2; grid-row: 1; font-size: 11.5px; font-weight: 700; color: var(--dim); }
   .predict-tile-msg { grid-column: 2; grid-row: 2; font-size: 15px; font-weight: 700; color: var(--text); line-height: 1.2; text-align: left; }
   body.simple .predict-tile-msg { font-size: 16.5px; }
-  body.simple .predict-tile { min-height: 120px; }
 
-  /* ============ ribbon — signature surface ============ */
-  .ribbon { background: var(--s1); border-radius: 26px; padding: 20px 18px 16px; box-shadow: var(--lit), var(--shadow); }
-  .ribbon .rhead { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 13px; }
-  .ribbon .rhead h2 { margin: 0; font-size: 15px; font-weight: 700; color: var(--dim); }
-  .ribbon .rhead .meta { font-size: 14px; color: var(--faint); }
-  .timeline { position: relative; height: 68px; }
-  .tl-track { position: absolute; left: 0; right: 0; top: 16px; height: 32px;
-    background: var(--s0); border-radius: 16px; box-shadow: var(--lit); }
-  .tl-grid { position: absolute; top: 16px; height: 32px; width: 1px; background: color-mix(in srgb, var(--faint) 22%, transparent); }
-  .tl-hour { position: absolute; top: 52px; transform: translateX(-50%); font-size: 13px; color: var(--faint); }
-  .tl-now { position: absolute; top: 6px; height: 50px; width: 2px; background: var(--gold-text); border-radius: 2px; z-index: 4; box-shadow: 0 0 10px var(--gold); }
-  .tl-moon { position: absolute; top: 0; width: 14px; height: 14px; transform: translateX(-50%); z-index: 5; color: var(--gold-text); filter: drop-shadow(0 0 6px var(--gold)); }
-  .tl-bar { position: absolute; top: 20px; height: 24px; border-radius: 7px; z-index: 2; background: var(--sleep); }
-  .tl-feed { position: absolute; top: 23px; width: 13px; height: 13px; border-radius: 50%; transform: translateX(-50%); z-index: 3;
-    background: var(--feed); box-shadow: 0 0 0 2px var(--s1); }
-  .tl-diaper { position: absolute; top: 24px; width: 11px; height: 11px; transform: translateX(-50%) rotate(45deg); z-index: 3;
-    background: var(--diaper); border-radius: 3px; box-shadow: 0 0 0 2px var(--s1); }
-  .legend { display: flex; gap: 18px; margin-top: 14px; flex-wrap: wrap; }
-  .legend span { display: inline-flex; align-items: center; gap: 7px; font-size: 14px; color: var(--dim); }
-  .legend .lg-feed { width: 11px; height: 11px; border-radius: 50%; background: var(--feed); }
-  .legend .lg-sleep { width: 15px; height: 9px; border-radius: 3px; background: var(--sleep); }
-  .legend .lg-diaper { width: 10px; height: 10px; border-radius: 2.5px; background: var(--diaper); transform: rotate(45deg); }
+  /* ============ Last 24 Hours — vertical proportional 24h ruler beside the
+     detail list (PiyoLog-style "ruler + log"). The ruler shows the whole day's
+     shape: sleep as tall bands, everything else as small dots. It stretches to
+     the list's height, so time→pixels stays proportional at any list length. */
+  .last24 { display: flex; gap: 12px; align-items: stretch; min-height: 300px; }
+  .ruler24 { flex: 0 0 52px; position: relative; }
+  /* the rail the bands/dots hang on, in the right-hand track (left 22px = labels) */
+  .ruler24::before { content: ""; position: absolute; left: 30px; top: 4px; bottom: 4px; width: 2px;
+    border-radius: 2px; background: color-mix(in srgb, var(--faint) 22%, transparent); }
+  .r-tick { position: absolute; left: 22px; right: 0; height: 1px; background: color-mix(in srgb, var(--faint) 16%, transparent); }
+  .r-lab { position: absolute; left: 0; width: 22px; text-align: right; transform: translateY(-50%);
+    font-size: 9.5px; font-weight: 800; letter-spacing: .01em; color: var(--faint); }
+  .r-band { position: absolute; left: 24px; width: 14px; border-radius: 7px; background: var(--sleep);
+    box-shadow: 0 0 0 2px var(--bg); min-height: 3px; }
+  .r-dot { position: absolute; left: 31px; width: 9px; height: 9px; border-radius: 50%;
+    transform: translate(-50%, -50%); box-shadow: 0 0 0 2px var(--bg); }
+  #list { flex: 1; min-width: 0; }
 
   /* quiet stats strip — no cards */
   .strip { display: flex; gap: 12px; justify-content: space-between; }
@@ -568,7 +562,10 @@
 
   <section class="recent">
     <h2><span id="raTitle">Today</span></h2>
-    <div id="list" class="timeline-list"></div>
+    <div class="last24">
+      <div class="ruler24" id="ruler" aria-hidden="true"></div>
+      <div id="list" class="timeline-list"></div>
+    </div>
   </section>
 
   <p class="foot">Prototype · sharing &amp; live sync are simulated on one device · <button id="resetBtn">reset demo</button></p>
@@ -641,7 +638,7 @@
       nurse:"Nurse", bottle:"Bottle", sleep:"Sleep", diaper:"Diaper", wake:"Wake",
       left:"Left", right:"Right", wet:"Wet", dirty:"Dirty", mixed:"Mixed", solids:"Solids", nursing:"Nursing",
       last_fed:"Last fed", ago:"ago",
-      todays_rhythm:"Today's rhythm", recent:"Recent", now:"Now", asleep:"Asleep", awake:"Awake",
+      todays_rhythm:"Last 24 Hours", recent:"Recent", now:"Now", asleep:"Asleep", awake:"Awake",
       sleep_today:"Sleep today", diapers:"Diapers", fed_today:"Fed today", last_diaper:"Last diaper", right_now:"Right now",
       saved:"logged", when:"When", today:"today", tap_start:"tap = start", tap_wet:"tap = wet",
       simple_mode:"Simple mode", switch_back:"Switch back", logging_as:"logging as",
@@ -657,7 +654,7 @@
       nurse:"Pasuso", bottle:"Bote", sleep:"Tulog", diaper:"Lampin", wake:"Gising",
       left:"Kaliwa", right:"Kanan", wet:"Basa", dirty:"Dumi", mixed:"Basa at dumi", solids:"Pagkain", nursing:"Pasuso",
       last_fed:"Huling pakain", ago:"ang nakalipas",
-      todays_rhythm:"Takbo ngayong araw", recent:"Mga huling ginawa", now:"Ngayon", asleep:"Tulog", awake:"Gising",
+      todays_rhythm:"Huling 24 Oras", recent:"Mga huling ginawa", now:"Ngayon", asleep:"Tulog", awake:"Gising",
       sleep_today:"Tulog ngayon", diapers:"Lampin", fed_today:"Nainom ngayon", last_diaper:"Huling lampin", right_now:"Ngayon mismo",
       saved:"na-log", when:"Kailan", today:"ngayon", tap_start:"pindot = simula", tap_wet:"pindot = basa",
       simple_mode:"Simpleng mode", switch_back:"Bumalik", logging_as:"nagre-record bilang",
@@ -844,7 +841,7 @@
     $("#bottleSub").textContent = db.pref.lastAmount? "tap = "+db.pref.lastAmount+" "+db.pref.unit : "";
     $("#sleepSub").textContent = db.timer&&db.timer.type==="sleep" ? "" : t("tap_start");
     $("#diaperSub").textContent = t("tap_wet");
-    renderWho(); renderHero(); renderPredict(); renderStrip(); renderList(); renderTimer();
+    renderWho(); renderHero(); renderPredict(); renderStrip(); renderRuler(); renderList(); renderTimer();
     updateScrollHint(); // button visibility above can change how much is left to scroll to
   }
 
@@ -1022,6 +1019,41 @@
   }
   function stat(type, k, v, s) {
     return '<div class="stat"><span class="k"><i style="background:var(--faint)"></i>'+k+'</span><span class="v tnum">'+v+'</span>'+(s?'<span class="s">'+s+'</span>':'')+'</div>';
+  }
+
+  // The vertical 24h ruler: the whole last-24h in proportion, so the day's
+  // shape reads at a glance. Sleep = tall bands (the signal parents most want
+  // spatially); every other event = a small colour-coded dot. "now" at the top
+  // to match the newest-first detail list beside it.
+  function renderRuler() {
+    var ruler=$("#ruler"); if (!ruler) return;
+    var end=Date.now(), WINDOW=86400000, start=end-WINDOW;
+    function pos(t){ return Math.max(0, Math.min(100, (end-t)/WINDOW*100)); }
+    var html="";
+    // hour gridlines + labels every 6h (now, -6h, -12h, -18h, -24h)
+    for (var h=0; h<=24; h+=6) {
+      var tt=end-h*3600000, top=pos(tt);
+      var d=new Date(tt+1800000), hr=d.getHours(); // round to nearest hour for the label
+      var lab=h===0 ? t("now") : (hr%12||12)+(hr<12?"a":"p");
+      html+='<div class="r-tick" style="top:'+top+'%"></div>';
+      html+='<div class="r-lab" style="top:'+top+'%">'+lab+'</div>';
+    }
+    // sleep bands (include an in-progress sleep, and clamp to the window)
+    var sleeps=db.events.filter(function (x){ return x.type==="sleep" && (x.end||0)>start && x.start<end; });
+    if (db.timer && db.timer.type==="sleep") sleeps.push({ start:db.timer.start, end:end });
+    sleeps.forEach(function (s){
+      var a=Math.max(s.start,start), b=Math.min(s.end||end,end);
+      if (b<=a) return;
+      html+='<div class="r-band" style="top:'+pos(b)+'%;height:'+(pos(a)-pos(b))+'%"></div>';
+    });
+    // every other event = a dot at its time, coloured by category
+    db.events.filter(function (x){ return x.type!=="sleep" && x.start>=start && x.start<=end; }).forEach(function (ev){
+      html+='<div class="r-dot" style="top:'+pos(ev.start)+'%;background:'+colorFor(ev.type)+'"></div>';
+    });
+    ruler.innerHTML=html;
+    // hide the whole ruler when there's nothing in the window (list shows empty state)
+    var any=sleeps.length || db.events.some(function (x){ return x.start>=start && x.start<=end; });
+    ruler.style.display = any ? "" : "none";
   }
 
   function renderList() {
@@ -1388,7 +1420,7 @@
       '<p class="hint">Formula parents: "Fed today". Night-duty: "Right now".</p>'+
       '<h4>Log solids</h4><button class="cta ghost" id="goSolids" style="margin-bottom:6px">'+t("solids")+'…</button>'+
       '<h4>Accessibility &amp; language</h4>'+
-      '<div class="toggle"><div><div class="tl">'+t("simple_mode")+'</div><div class="td">Fewer things on screen — hides the rhythm ribbon and stats.</div></div><button class="sw" id="swSimple" aria-pressed="'+me.simple+'" role="switch" aria-label="Simple mode"></button></div>'+
+      '<div class="toggle"><div><div class="tl">'+t("simple_mode")+'</div><div class="td">Fewer things on screen — hides the stats.</div></div><button class="sw" id="swSimple" aria-pressed="'+me.simple+'" role="switch" aria-label="Simple mode"></button></div>'+
       '<div class="toggle"><div><div class="tl">Larger text &amp; controls</div><div class="td">Bigger type and tap targets throughout — independent of Simple mode.</div></div><button class="sw" id="swAccess" aria-pressed="'+me.access+'" role="switch" aria-label="Larger text and controls"></button></div>'+
       '<div class="toggle"><div><div class="tl">Language</div><div class="td">Demo: English / Tagalog (placeholder — needs native review).</div></div>'+
         '<div class="unitrow" style="margin:0"><button id="langEn" aria-pressed="'+(me.lang!=="tl")+'">EN</button><button id="langTl" aria-pressed="'+(me.lang==="tl")+'">TL</button></div></div>'+
