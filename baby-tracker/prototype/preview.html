@@ -177,10 +177,7 @@
   .stat .s { font-size: 13px; color: var(--faint); }
 
   /* ============ recent — borderless list ============ */
-  .recent h2 { margin: 0 0 8px; font-size: 15px; font-weight: 700; color: var(--dim);
-    display: flex; justify-content: space-between; align-items: baseline; }
-  .recent h2 .seeall { all: unset; cursor: pointer; font-size: 15px; font-weight: 700; color: var(--gold-text); padding: 4px; }
-  .recent h2 .seeall:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 6px; }
+  .recent h2 { margin: 0 0 8px; font-size: 15px; font-weight: 700; color: var(--dim); }
   /* ---- the day timeline: time · rail+node · text ----
      Deliberately quiet. The ONLY colour is one soft category tint per node
      (feed/sleep/diaper/other); everything else is neutral. No bright
@@ -503,7 +500,7 @@
   <section class="strip" id="strip"></section>
 
   <section class="recent">
-    <h2><span id="raTitle">Today</span><button class="seeall" id="seeAll">See all</button></h2>
+    <h2><span id="raTitle">Today</span></h2>
     <div id="list" class="timeline-list"></div>
   </section>
 
@@ -621,7 +618,7 @@
     pref: load(K.pref, { unit:"ml", side:"L", lastAmount:null, stats:["sleep","diapers","feedVol"] }),
     care: load(K.care, null), cur: load(K.cur, "you")
   };
-  var lastDeleted = null, toastTimer = null, showAll = false, revealedRow = null;
+  var lastDeleted = null, toastTimer = null, revealedRow = null;
 
   function load(k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
   function saveK(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
@@ -903,8 +900,7 @@
 
   function renderList() {
     var list=$("#list"); list.innerHTML="";
-    var evs=db.events.slice().sort(function (a,b){return b.start-a.start;}).slice(0, showAll?30:(simpleOn()?5:3));
-    $("#seeAll").textContent = showAll ? "Less" : "See all";
+    var evs=db.events.slice().sort(function (a,b){return b.start-a.start;});
     if (!evs.length){ list.innerHTML='<div class="empty"><div class="big">🌙</div>'+t("nothing")+'<br>'+t("tapbelow")+'</div>'; return; }
     evs.forEach(function (ev){
       var who=careById(ev.by||"you");
@@ -1320,7 +1316,6 @@
   $("#sbBack").addEventListener("click", function (){
     if (db.cur==="you") { cur().simple=false; cur().access=false; } else { db.cur="you"; }
     persist(); render(); });
-  $("#seeAll").addEventListener("click", function (){ showAll=!showAll; renderList(); });
   /* window.confirm() is unreliable here — sandboxed iframes (including how
      this prototype is actually viewed, as a published Artifact) commonly
      omit "allow-modals", which makes confirm() return false immediately
