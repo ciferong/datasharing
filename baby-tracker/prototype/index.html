@@ -1304,11 +1304,24 @@
     if (db.cur==="you") { cur().simple=false; cur().access=false; } else { db.cur="you"; }
     persist(); render(); });
   $("#seeAll").addEventListener("click", function (){ showAll=!showAll; renderList(); });
-  $("#resetBtn").addEventListener("click", function (){ if (!confirm("Reset the demo? This clears all data on this device.")) return;
-    Object.keys(K).forEach(function (k){ localStorage.removeItem(K[k]); });
-    db.care=DEFAULT_CARE.map(function (c){ return Object.assign({}, c); }); db.cur="you";
-    db.pref={ unit:"ml", side:"L", lastAmount:null, stats:["sleep","diapers","feedVol"] };
-    db.baby={ name:"Baby", dob: Date.now()-86400000*84 }; db.timer=null; db.events=seed(); persist(); render(); toast("Demo reset", null, null, true); });
+  /* window.confirm() is unreliable here — sandboxed iframes (including how
+     this prototype is actually viewed, as a published Artifact) commonly
+     omit "allow-modals", which makes confirm() return false immediately
+     with no dialog shown at all, silently no-opping the whole action. Use
+     an in-app confirm sheet instead of a browser-native dialog. */
+  $("#resetBtn").addEventListener("click", function (){
+    openSheet('<h3 id="sheetTitle">Reset demo?</h3><p class="sub">This clears all data on this device. Can\'t be undone.</p>'+
+      '<div class="stickycta ctarow"><button class="cta ghost" id="rstCxl">Cancel</button><button class="cta danger" id="rstGo">Reset</button></div>');
+    $("#rstCxl").addEventListener("click", closeSheet);
+    $("#rstGo").addEventListener("click", function (){
+      closeSheet();
+      Object.keys(K).forEach(function (k){ localStorage.removeItem(K[k]); });
+      db.care=DEFAULT_CARE.map(function (c){ return Object.assign({}, c); }); db.cur="you";
+      db.pref={ unit:"ml", side:"L", lastAmount:null, stats:["sleep","diapers","feedVol"] };
+      db.baby={ name:"Baby", dob: Date.now()-86400000*84 }; db.timer=null; db.events=seed(); persist(); render();
+      toast("Demo reset", null, null, true);
+    });
+  });
 
   render();
   maybeShowGestureTip();
