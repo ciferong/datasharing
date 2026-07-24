@@ -8,53 +8,53 @@
      against every surface it actually sits on — see commit history for the
      computed ratios), not eyeballed. ============ */
   :root {
-    --bg: #f6eef9; --bg-glow: #ffe9d6;
-    --s0: #f5eefb; --s1: #fffefb; --s2: #faf3ff;
-    --text: #2b1f3d; --dim: #5b4a72; --faint: #6a5a84;
-    --gold: #ef7a5e; --gold-text: #b23f12; --toast-accent: #ef7a5e; --gold-soft: #ff8f5c; --gold-ink: #2a1200;
-    --feed: #c23a1a; --sleep: #6b4bcc; --diaper: #0f7a72; --good: #0d7a6e; --danger: #c62233;
+    --bg: #f7efe6; --bg-glow: #fbe6d3;
+    --s0: #f6eee4; --s1: #fffdf9; --s2: #faf2ea;
+    --text: #33251c; --dim: #6a5445; --faint: #7a6455;
+    --gold: #d17a4e; --gold-text: #a1481f; --toast-accent: #f0a878; --gold-soft: #f0a878; --gold-ink: #2a1405;
+    --feed: #b5301f; --sleep: #6b4bcc; --diaper: #0f7a72; --good: #0d7a6e; --danger: #c62233;
     --panel-ink-del: #fff3f2; --panel-ink-edit: #fff8f0;
     --glow: 0 0 0 transparent;
     --lit: inset 0 1px 0 rgba(255,255,255,.9);
-    --shadow: 0 8px 26px rgba(60,40,80,.10);
-    --sheet-shadow: 0 -14px 44px rgba(50,30,70,.18);
-    --ring: rgba(189,69,21,.55);
-    --scrim: rgba(40,26,55,.45);
+    --shadow: 0 8px 26px rgba(70,45,25,.12);
+    --sheet-shadow: 0 -14px 44px rgba(60,35,20,.18);
+    --ring: rgba(161,72,31,.55);
+    --scrim: rgba(51,37,28,.45);
     --ts: 1;
   }
   @media (prefers-color-scheme: dark) { :root {
-    --bg: #171021; --bg-glow: #2a1c3f;
-    --s0: #221733; --s1: #2b1e40; --s2: #372a4e;
-    --text: #f7f0fb; --dim: #d3c3e6; --faint: #a996c2;
-    --gold: #ffb37a; --gold-text: #ffc79a; --toast-accent: #bd4515; --gold-soft: #ffc99a; --gold-ink: #2a1200;
-    --feed: #ff8f6b; --sleep: #b6a3ff; --diaper: #5fd6c4; --good: #58d69e; --danger: #ff8a8a;
+    --bg: #1f150f; --bg-glow: #34211a;
+    --s0: #291c14; --s1: #33251c; --s2: #433126;
+    --text: #f7ede4; --dim: #e0c8b6; --faint: #b59a86;
+    --gold: #f0a878; --gold-text: #f6bb92; --toast-accent: #a1481f; --gold-soft: #ffcaa0; --gold-ink: #2a1405;
+    --feed: #ff8f6b; --sleep: #c3b0ff; --diaper: #5fd6c4; --good: #58d69e; --danger: #ff8a8a;
     --panel-ink-del: #2a1200; --panel-ink-edit: #2a1200;
-    --glow: 0 0 18px rgba(255,179,122,.3);
+    --glow: 0 0 18px rgba(240,168,120,.3);
     --lit: inset 0 1px 0 rgba(255,255,255,.07);
     --shadow: 0 10px 30px rgba(0,0,0,.4);
     --sheet-shadow: 0 -16px 48px rgba(0,0,0,.55);
-    --ring: rgba(255,179,122,.5);
-    --scrim: rgba(8,4,14,.6);
+    --ring: rgba(240,168,120,.5);
+    --scrim: rgba(6,3,1,.6);
   } }
   :root[data-theme="light"] {
-    --bg: #f6eef9; --bg-glow: #ffe9d6; --s0: #f5eefb; --s1: #fffefb; --s2: #faf3ff;
-    --text: #2b1f3d; --dim: #5b4a72; --faint: #6a5a84;
-    --gold: #ef7a5e; --gold-text: #b23f12; --toast-accent: #ef7a5e; --gold-soft: #ff8f5c; --gold-ink: #2a1200;
-    --feed: #c23a1a; --sleep: #6b4bcc; --diaper: #0f7a72; --good: #0d7a6e; --danger: #c62233;
+    --bg: #f7efe6; --bg-glow: #fbe6d3; --s0: #f6eee4; --s1: #fffdf9; --s2: #faf2ea;
+    --text: #33251c; --dim: #6a5445; --faint: #7a6455;
+    --gold: #d17a4e; --gold-text: #a1481f; --toast-accent: #f0a878; --gold-soft: #f0a878; --gold-ink: #2a1405;
+    --feed: #b5301f; --sleep: #6b4bcc; --diaper: #0f7a72; --good: #0d7a6e; --danger: #c62233;
     --panel-ink-del: #fff3f2; --panel-ink-edit: #fff8f0;
     --glow: 0 0 0 transparent; --lit: inset 0 1px 0 rgba(255,255,255,.9);
-    --shadow: 0 8px 26px rgba(60,40,80,.10); --sheet-shadow: 0 -14px 44px rgba(50,30,70,.18);
-    --ring: rgba(189,69,21,.55); --scrim: rgba(40,26,55,.45);
+    --shadow: 0 8px 26px rgba(70,45,25,.12); --sheet-shadow: 0 -14px 44px rgba(60,35,20,.18);
+    --ring: rgba(161,72,31,.55); --scrim: rgba(51,37,28,.45);
   }
   :root[data-theme="dark"] {
-    --bg: #171021; --bg-glow: #2a1c3f; --s0: #221733; --s1: #2b1e40; --s2: #372a4e;
-    --text: #f7f0fb; --dim: #d3c3e6; --faint: #a996c2;
-    --gold: #ffb37a; --gold-text: #ffc79a; --toast-accent: #bd4515; --gold-soft: #ffc99a; --gold-ink: #2a1200;
-    --feed: #ff8f6b; --sleep: #b6a3ff; --diaper: #5fd6c4; --good: #58d69e; --danger: #ff8a8a;
+    --bg: #1f150f; --bg-glow: #34211a; --s0: #291c14; --s1: #33251c; --s2: #433126;
+    --text: #f7ede4; --dim: #e0c8b6; --faint: #b59a86;
+    --gold: #f0a878; --gold-text: #f6bb92; --toast-accent: #a1481f; --gold-soft: #ffcaa0; --gold-ink: #2a1405;
+    --feed: #ff8f6b; --sleep: #c3b0ff; --diaper: #5fd6c4; --good: #58d69e; --danger: #ff8a8a;
     --panel-ink-del: #2a1200; --panel-ink-edit: #2a1200;
-    --glow: 0 0 18px rgba(255,179,122,.3); --lit: inset 0 1px 0 rgba(255,255,255,.07);
+    --glow: 0 0 18px rgba(240,168,120,.3); --lit: inset 0 1px 0 rgba(255,255,255,.07);
     --shadow: 0 10px 30px rgba(0,0,0,.4); --sheet-shadow: 0 -16px 48px rgba(0,0,0,.55);
-    --ring: rgba(255,179,122,.5); --scrim: rgba(8,4,14,.6);
+    --ring: rgba(240,168,120,.5); --scrim: rgba(6,3,1,.6);
   }
   /* time-of-day tint (dark ground only, subtle) */
   body[data-tod="dusk"]   { --bg-tint: rgba(138,111,240,.10); }
@@ -470,6 +470,7 @@
       <button class="whochip" id="whoChip" aria-label="Switch caregiver — who is logging">
         <span class="av" id="whoAv">Y</span><span id="whoNm">You</span>
       </button>
+      <button class="icobtn" id="themeBtn" aria-label="Change theme"></button>
       <button class="icobtn" id="setBtn" aria-label="Settings">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg>
       </button>
@@ -740,9 +741,30 @@
   function tod() { var h=new Date().getHours();
     return h>=17&&h<21?"dusk":h>=21||h<5?"night":h<8?"predawn":"day"; }
 
+  /* Theme: 'auto' follows the OS (no data-theme attr → the @media block wins);
+     'light'/'dark' pin it explicitly. Cycled by the header toggle, remembered
+     per install in db.pref.theme. */
+  var THEME_ICONS = {
+    auto:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v18" /><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/></svg>',
+    light: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.2M12 19.8V22M2 12h2.2M19.8 12H22M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M19.4 4.6 17.8 6.2M6.2 17.8 4.6 19.4"/></svg>',
+    dark:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>'
+  };
+  function applyTheme() {
+    var th = db.pref.theme || "auto";
+    if (th === "auto") document.documentElement.removeAttribute("data-theme");
+    else document.documentElement.setAttribute("data-theme", th);
+    var btn = $("#themeBtn");
+    if (btn) {
+      btn.innerHTML = THEME_ICONS[th];
+      btn.setAttribute("aria-label", "Theme: "+th+" — tap to change");
+      btn.setAttribute("title", "Theme: "+th);
+    }
+  }
+
   /* ---------- RENDER ---------- */
   function render() {
     document.body.dataset.tod = tod();
+    applyTheme();
     document.body.classList.toggle("simple", simpleOn());
     document.body.classList.toggle("access", accessOn());
     document.documentElement.style.setProperty("--ts", accessOn() ? "1.18" : "1");
@@ -1360,6 +1382,10 @@
   window.addEventListener("resize", updateScrollHint);
   $("#babyBtn").addEventListener("click", babySheet);
   $("#whoChip").addEventListener("click", shareSheet);
+  $("#themeBtn").addEventListener("click", function (){
+    var order=["auto","light","dark"], i=order.indexOf(db.pref.theme||"auto");
+    db.pref.theme=order[(i+1)%order.length]; persist(); applyTheme(); buzz();
+  });
   $("#setBtn").addEventListener("click", settingsSheet);
   $("#sbBack").addEventListener("click", function (){
     if (db.cur==="you") { cur().simple=false; cur().access=false; } else { db.cur="you"; }
