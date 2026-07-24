@@ -130,7 +130,7 @@
   .predict-tiles.single { grid-template-columns: 1fr; }
   .predict-tile { all: unset; cursor: pointer; box-sizing: border-box; display: flex; flex-direction: column;
     align-items: flex-start; gap: 9px; padding: 16px; border-radius: 24px; min-height: 110px;
-    background: linear-gradient(160deg, color-mix(in srgb, var(--gold) 16%, var(--s1)), var(--s1));
+    background: linear-gradient(160deg, color-mix(in srgb, var(--gold) 7%, var(--s1)), var(--s1));
     box-shadow: var(--lit), var(--shadow); transition: transform .32s cubic-bezier(.34,1.4,.64,1); }
   .predict-tile:active { transform: scale(.96); }
   .predict-tile:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
@@ -139,7 +139,7 @@
   .predict-tile-ic { width: 40px; height: 40px; border-radius: 14px; display: grid; place-items: center;
     background: color-mix(in srgb, currentColor 18%, var(--s1)); }
   .predict-tile-ic svg { width: 21px; height: 21px; }
-  .predict-tile-lead { font-size: 12px; font-weight: 700; color: var(--gold-text); }
+  .predict-tile-lead { font-size: 12px; font-weight: 700; color: var(--dim); }
   .predict-tile-msg { font-size: 16px; font-weight: 700; color: var(--text); line-height: 1.25; text-align: left; }
   body.simple .predict-tile-msg { font-size: 18px; }
   body.simple .predict-tile { min-height: 120px; }
@@ -276,9 +276,10 @@
   .act:active { transform: scale(.9); }
   .act:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
   .act svg { width: 23px; height: 23px; }
-  .act.nurse { color: var(--feed); } .act.bottle { color: var(--feed); } .act.solids { color: var(--feed); }
-  .act.sleep { color: var(--sleep); } .act.diaper { color: var(--diaper); }
-  .act.bath { color: var(--gold-text); } .act.more { color: var(--dim); }
+  /* Shortcut row is deliberately quiet — one soft neutral, no rainbow. The
+     color pop lives up top on the predicted tiles; the manual fallbacks defer
+     to them. --dim is a warm lilac-grey, so this reads calm, not clinical. */
+  .act.nurse, .act.bottle, .act.solids, .act.sleep, .act.diaper, .act.bath, .act.more { color: var(--dim); }
   .act .lbl { color: var(--text); white-space: nowrap; }
   .act .sub2 { display: none; } /* dropped: no room in the compact row; the hold-hint + coach-mark still teach the gesture */
   .act.armed { background: color-mix(in srgb, var(--sleep) 22%, var(--s1)); box-shadow: var(--lit), var(--shadow), 0 0 14px color-mix(in srgb, var(--sleep) 40%, transparent); }
@@ -434,17 +435,23 @@
   .rowwrap { position: relative; border-radius: 14px; overflow: hidden; touch-action: pan-y; }
   .swipeunder { position: absolute; inset: 0; display: flex; align-items: stretch; justify-content: space-between; }
   .swipeunder .sw-edit { flex: 1; display: flex; align-items: center; font-size: 14.5px; font-weight: 700;
-    justify-content: flex-start; padding-left: 18px; background: var(--dim); color: var(--panel-ink-edit); }
+    justify-content: flex-start; padding-left: 18px; background: transparent; color: transparent; }
   .rowbtn { background: var(--bg); position: relative; z-index: 1; transition: transform .22s cubic-bezier(.22,.8,.28,1); }
   .row.swiping .rowbtn { transition: none; }
+  /* The reveal panels stay invisible until the row is actually being swiped or
+     is held open — otherwise the absolutely-positioned .swipeunder (which spans
+     the row's vertical padding, unlike the shorter .rowbtn) peeks its Edit/Delete
+     colours out around every row at rest, which read as loud slabs. */
+  .row.swiping .sw-edit, .row.revealed .sw-edit { background: var(--dim); color: var(--panel-ink-edit); }
+  .row.swiping .sw-del,  .row.revealed .sw-del  { background: var(--feed); color: var(--panel-ink-del); }
   /* revealed = delete swiped-open and awaiting a confirming tap, not yet
      committed — a destructive action never fires from drag-release alone.
      .sw-del is a real <button> (unlike the auto-firing, non-destructive
      .sw-edit label) so it needs its own reset + the shared panel styling
      re-declared, since `all: unset` on the button wipes it. */
   .swipeunder .sw-del { all: unset; box-sizing: border-box; cursor: pointer;
-    flex: 1; display: flex; align-items: center; font-size: 14.5px; font-weight: 700; color: var(--panel-ink-del);
-    justify-content: flex-end; padding-right: 18px; background: var(--feed); }
+    flex: 1; display: flex; align-items: center; font-size: 14.5px; font-weight: 700; color: transparent;
+    justify-content: flex-end; padding-right: 18px; background: transparent; }
   .swipeunder .sw-del:focus-visible { outline: 2px solid var(--ring); outline-offset: -3px; }
 
   @media (prefers-reduced-motion: reduce) { * { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
