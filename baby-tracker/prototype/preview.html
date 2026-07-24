@@ -11,9 +11,9 @@
     --bg: #f6eef9; --bg-glow: #ffe9d6;
     --s0: #f5eefb; --s1: #fffefb; --s2: #faf3ff;
     --text: #2b1f3d; --dim: #5b4a72; --faint: #6a5a84;
-    --gold: #f0713a; --gold-text: #bd4515; --toast-accent: #f0713a; --gold-soft: #ff8f5c; --gold-ink: #2a1200;
-    --feed: #ff7a45; --sleep: #8a6ff0; --diaper: #2bc48a; --good: #0c6f49;
-    --panel-ink-del: #2a1200; --panel-ink-edit: #fff8f0;
+    --gold: #ef7a5e; --gold-text: #b23f12; --toast-accent: #ef7a5e; --gold-soft: #ff8f5c; --gold-ink: #2a1200;
+    --feed: #c23a1a; --sleep: #6b4bcc; --diaper: #0f7a72; --good: #0d7a6e; --danger: #c62233;
+    --panel-ink-del: #fff3f2; --panel-ink-edit: #fff8f0;
     --glow: 0 0 0 transparent;
     --lit: inset 0 1px 0 rgba(255,255,255,.9);
     --shadow: 0 8px 26px rgba(60,40,80,.10);
@@ -23,11 +23,11 @@
     --ts: 1;
   }
   @media (prefers-color-scheme: dark) { :root {
-    --bg: #181022; --bg-glow: #2a1c3f;
-    --s0: #1f1629; --s1: #221830; --s2: #2b1f3d;
+    --bg: #171021; --bg-glow: #2a1c3f;
+    --s0: #221733; --s1: #2b1e40; --s2: #372a4e;
     --text: #f7f0fb; --dim: #d3c3e6; --faint: #a996c2;
-    --gold: #ffb37a; --gold-text: #ffb37a; --toast-accent: #bd4515; --gold-soft: #ffc99a; --gold-ink: #2a1200;
-    --feed: #ffab7a; --sleep: #b6a3ff; --diaper: #6fe0b8; --good: #58d69e;
+    --gold: #ffb37a; --gold-text: #ffc79a; --toast-accent: #bd4515; --gold-soft: #ffc99a; --gold-ink: #2a1200;
+    --feed: #ff8f6b; --sleep: #b6a3ff; --diaper: #5fd6c4; --good: #58d69e; --danger: #ff8a8a;
     --panel-ink-del: #2a1200; --panel-ink-edit: #2a1200;
     --glow: 0 0 18px rgba(255,179,122,.3);
     --lit: inset 0 1px 0 rgba(255,255,255,.07);
@@ -39,18 +39,18 @@
   :root[data-theme="light"] {
     --bg: #f6eef9; --bg-glow: #ffe9d6; --s0: #f5eefb; --s1: #fffefb; --s2: #faf3ff;
     --text: #2b1f3d; --dim: #5b4a72; --faint: #6a5a84;
-    --gold: #f0713a; --gold-text: #bd4515; --toast-accent: #f0713a; --gold-soft: #ff8f5c; --gold-ink: #2a1200;
-    --feed: #ff7a45; --sleep: #8a6ff0; --diaper: #2bc48a; --good: #0c6f49;
-    --panel-ink-del: #2a1200; --panel-ink-edit: #fff8f0;
+    --gold: #ef7a5e; --gold-text: #b23f12; --toast-accent: #ef7a5e; --gold-soft: #ff8f5c; --gold-ink: #2a1200;
+    --feed: #c23a1a; --sleep: #6b4bcc; --diaper: #0f7a72; --good: #0d7a6e; --danger: #c62233;
+    --panel-ink-del: #fff3f2; --panel-ink-edit: #fff8f0;
     --glow: 0 0 0 transparent; --lit: inset 0 1px 0 rgba(255,255,255,.9);
     --shadow: 0 8px 26px rgba(60,40,80,.10); --sheet-shadow: 0 -14px 44px rgba(50,30,70,.18);
     --ring: rgba(189,69,21,.55); --scrim: rgba(40,26,55,.45);
   }
   :root[data-theme="dark"] {
-    --bg: #181022; --bg-glow: #2a1c3f; --s0: #1f1629; --s1: #221830; --s2: #2b1f3d;
+    --bg: #171021; --bg-glow: #2a1c3f; --s0: #221733; --s1: #2b1e40; --s2: #372a4e;
     --text: #f7f0fb; --dim: #d3c3e6; --faint: #a996c2;
-    --gold: #ffb37a; --gold-text: #ffb37a; --toast-accent: #bd4515; --gold-soft: #ffc99a; --gold-ink: #2a1200;
-    --feed: #ffab7a; --sleep: #b6a3ff; --diaper: #6fe0b8; --good: #58d69e;
+    --gold: #ffb37a; --gold-text: #ffc79a; --toast-accent: #bd4515; --gold-soft: #ffc99a; --gold-ink: #2a1200;
+    --feed: #ff8f6b; --sleep: #b6a3ff; --diaper: #5fd6c4; --good: #58d69e; --danger: #ff8a8a;
     --panel-ink-del: #2a1200; --panel-ink-edit: #2a1200;
     --glow: 0 0 18px rgba(255,179,122,.3); --lit: inset 0 1px 0 rgba(255,255,255,.07);
     --shadow: 0 10px 30px rgba(0,0,0,.4); --sheet-shadow: 0 -16px 48px rgba(0,0,0,.55);
@@ -130,8 +130,9 @@
   .predict-tiles.single { grid-template-columns: 1fr; }
   .predict-tile { all: unset; cursor: pointer; box-sizing: border-box; display: flex; flex-direction: column;
     align-items: flex-start; gap: 9px; padding: 16px; border-radius: 24px; min-height: 110px;
-    background: linear-gradient(160deg, color-mix(in srgb, var(--gold) 7%, var(--s1)), var(--s1));
+    background: linear-gradient(160deg, color-mix(in srgb, var(--gold) 13%, var(--s1)), var(--s1));
     box-shadow: var(--lit), var(--shadow); transition: transform .32s cubic-bezier(.34,1.4,.64,1); }
+  .predict-tile.due { background: linear-gradient(160deg, color-mix(in srgb, var(--gold) 22%, var(--s1)), var(--s1)); }
   .predict-tile:active { transform: scale(.96); }
   .predict-tile:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
   .predict-tile.pop { animation: predictpop .5s cubic-bezier(.34,1.56,.64,1); }
@@ -360,7 +361,7 @@
   .cta:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
   .cta:active { transform: scale(.97); }
   .cta.ghost { background: var(--s2); color: var(--text); box-shadow: var(--lit); }
-  .cta.danger { background: color-mix(in srgb, var(--feed) 13%, var(--s1)); color: var(--feed); box-shadow: var(--lit); }
+  .cta.danger { background: color-mix(in srgb, var(--danger) 13%, var(--s1)); color: var(--danger); box-shadow: var(--lit); }
   .ctarow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   /* pins the primary action to the bottom of the sheet's scrollport, so a
      thumb never has to travel up past a scrolled stepper to confirm a log */
@@ -445,7 +446,7 @@
      the row's vertical padding, unlike the shorter .rowbtn) peeks its Edit/Delete
      colours out around every row at rest, which read as loud slabs. */
   .row.swiping .sw-edit, .row.revealed .sw-edit { background: var(--dim); color: var(--panel-ink-edit); }
-  .row.swiping .sw-del,  .row.revealed .sw-del  { background: var(--feed); color: var(--panel-ink-del); }
+  .row.swiping .sw-del,  .row.revealed .sw-del  { background: var(--danger); color: var(--panel-ink-del); }
   /* revealed = delete swiped-open and awaiting a confirming tap, not yet
      committed — a destructive action never fires from drag-release alone.
      .sw-del is a real <button> (unlike the auto-firing, non-destructive
@@ -887,10 +888,17 @@
       // Honest timing label now that tiles always show (even not-yet-due):
       // overdue -> "Ready"; otherwise the real estimated wait, e.g. "in ~40m".
       var msLeft = p.avg - p.elapsed;
-      var lead = msLeft <= 0 ? "Ready" : "in ~"+durShort(msLeft);
+      var due = msLeft <= 0;
+      var lead = due ? "Ready" : "in ~"+durShort(msLeft);
       tile.querySelector(".predict-tile-ic").innerHTML=a.icon;
       tile.querySelector(".predict-tile-ic").style.color=a.color;
-      tile.querySelector(".predict-tile-lead").textContent = lead;
+      // urgency shows in colour: an overdue ("Ready") tile warms up and its lead
+      // takes the accent; a not-yet-due tile stays quiet. So the "do this next"
+      // answer is seen, not just read.
+      tile.classList.toggle("due", due);
+      var leadEl = tile.querySelector(".predict-tile-lead");
+      leadEl.textContent = lead;
+      leadEl.style.color = due ? "var(--gold-text)" : "var(--dim)";
       tile.querySelector(".predict-tile-msg").textContent = a.label;
       tile.setAttribute("aria-label", "Log "+a.label+(msLeft<=0?" now":" (due in about "+durShort(msLeft)+")")+" — predicted");
       if (tile.hidden || lastPredictMsgs[i]!==a.label) { tile.classList.remove("pop"); void tile.offsetWidth; tile.classList.add("pop"); }
@@ -920,7 +928,7 @@
     $("#strip").innerHTML=out;
   }
   function stat(type, k, v, s) {
-    return '<div class="stat"><span class="k"><i style="background:'+colorFor(type)+'"></i>'+k+'</span><span class="v tnum">'+v+'</span>'+(s?'<span class="s">'+s+'</span>':'')+'</div>';
+    return '<div class="stat"><span class="k"><i style="background:var(--faint)"></i>'+k+'</span><span class="v tnum">'+v+'</span>'+(s?'<span class="s">'+s+'</span>':'')+'</div>';
   }
 
   function renderList() {
