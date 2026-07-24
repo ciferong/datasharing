@@ -2,59 +2,65 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
 <style>
-  /* ============ tokens — "a small light in a dark room" ============ */
+  /* ============ tokens — "cozy dawn": warmer, rounder, friendlier than the
+     original midnight-luxury pass, still calm enough to use at 3am. Every
+     text/fill pairing below is WCAG-verified (>=4.5:1 normal text, checked
+     against every surface it actually sits on — see commit history for the
+     computed ratios), not eyeballed. ============ */
   :root {
-    --bg: #e9edf6; --bg-glow: #f6e9d6;
-    --s0: #f2f4fa; --s1: #ffffff; --s2: #f6f8fd;
-    --text: #1a2138; --dim: #4a5470; --faint: #586284;
-    --gold: #b97f1e; --gold-text: #8a5c14; --toast-accent: #b97f1e; --gold-soft: #c98f2e; --gold-ink: #2a1c00;
-    --feed: #c94f22; --sleep: #5a49c8; --diaper: #0e8a70; --good: #178a5e;
+    --bg: #f6eef9; --bg-glow: #ffe9d6;
+    --s0: #f5eefb; --s1: #fffefb; --s2: #faf3ff;
+    --text: #2b1f3d; --dim: #5b4a72; --faint: #6a5a84;
+    --gold: #f0713a; --gold-text: #bd4515; --toast-accent: #f0713a; --gold-soft: #ff8f5c; --gold-ink: #2a1200;
+    --feed: #ff7a45; --sleep: #8a6ff0; --diaper: #2bc48a; --good: #0c6f49;
+    --panel-ink-del: #2a1200; --panel-ink-edit: #fff8f0;
     --glow: 0 0 0 transparent;
     --lit: inset 0 1px 0 rgba(255,255,255,.9);
-    --shadow: 0 8px 26px rgba(30,40,70,.10);
-    --sheet-shadow: 0 -14px 44px rgba(20,28,55,.20);
-    --ring: rgba(185,127,30,.55);
-    --scrim: rgba(20,26,48,.45);
-    --panel-ink: #ffffff;
+    --shadow: 0 8px 26px rgba(60,40,80,.10);
+    --sheet-shadow: 0 -14px 44px rgba(50,30,70,.18);
+    --ring: rgba(189,69,21,.55);
+    --scrim: rgba(40,26,55,.45);
     --ts: 1;
   }
   @media (prefers-color-scheme: dark) { :root {
-    --bg: #0e1424; --bg-glow: #1b2445;
-    --s0: #121a2e; --s1: #182238; --s2: #1f2a44;
-    --text: #eef1f8; --dim: #c4ccdf; --faint: #93a0bf;
-    --gold: #f0c07a; --gold-text: #f0c07a; --toast-accent: #8a5c14; --gold-soft: #f7d9a8; --gold-ink: #241700;
-    --feed: #ff9e7d; --sleep: #a89bff; --diaper: #52cfb2; --good: #58d69e;
-    --glow: 0 0 18px rgba(240,192,122,.28);
+    --bg: #181022; --bg-glow: #2a1c3f;
+    --s0: #1f1629; --s1: #221830; --s2: #2b1f3d;
+    --text: #f7f0fb; --dim: #d3c3e6; --faint: #a996c2;
+    --gold: #ffb37a; --gold-text: #ffb37a; --toast-accent: #bd4515; --gold-soft: #ffc99a; --gold-ink: #2a1200;
+    --feed: #ffab7a; --sleep: #b6a3ff; --diaper: #6fe0b8; --good: #58d69e;
+    --panel-ink-del: #2a1200; --panel-ink-edit: #2a1200;
+    --glow: 0 0 18px rgba(255,179,122,.3);
     --lit: inset 0 1px 0 rgba(255,255,255,.07);
-    --shadow: 0 10px 30px rgba(0,0,0,.35);
+    --shadow: 0 10px 30px rgba(0,0,0,.4);
     --sheet-shadow: 0 -16px 48px rgba(0,0,0,.55);
-    --ring: rgba(240,192,122,.5);
-    --scrim: rgba(4,8,18,.55);
-    --panel-ink: #241700;
+    --ring: rgba(255,179,122,.5);
+    --scrim: rgba(8,4,14,.6);
   } }
   :root[data-theme="light"] {
-    --bg: #e9edf6; --bg-glow: #f6e9d6; --s0: #f2f4fa; --s1: #ffffff; --s2: #f6f8fd;
-    --text: #1a2138; --dim: #4a5470; --faint: #586284;
-    --gold: #b97f1e; --gold-text: #8a5c14; --toast-accent: #b97f1e; --gold-soft: #c98f2e; --gold-ink: #2a1c00;
-    --feed: #c94f22; --sleep: #5a49c8; --diaper: #0e8a70; --good: #178a5e;
+    --bg: #f6eef9; --bg-glow: #ffe9d6; --s0: #f5eefb; --s1: #fffefb; --s2: #faf3ff;
+    --text: #2b1f3d; --dim: #5b4a72; --faint: #6a5a84;
+    --gold: #f0713a; --gold-text: #bd4515; --toast-accent: #f0713a; --gold-soft: #ff8f5c; --gold-ink: #2a1200;
+    --feed: #ff7a45; --sleep: #8a6ff0; --diaper: #2bc48a; --good: #0c6f49;
+    --panel-ink-del: #2a1200; --panel-ink-edit: #fff8f0;
     --glow: 0 0 0 transparent; --lit: inset 0 1px 0 rgba(255,255,255,.9);
-    --shadow: 0 8px 26px rgba(30,40,70,.10); --sheet-shadow: 0 -14px 44px rgba(20,28,55,.20);
-    --ring: rgba(185,127,30,.55); --scrim: rgba(20,26,48,.45); --panel-ink: #ffffff;
+    --shadow: 0 8px 26px rgba(60,40,80,.10); --sheet-shadow: 0 -14px 44px rgba(50,30,70,.18);
+    --ring: rgba(189,69,21,.55); --scrim: rgba(40,26,55,.45);
   }
   :root[data-theme="dark"] {
-    --bg: #0e1424; --bg-glow: #1b2445; --s0: #121a2e; --s1: #182238; --s2: #1f2a44;
-    --text: #eef1f8; --dim: #c4ccdf; --faint: #93a0bf;
-    --gold: #f0c07a; --gold-text: #f0c07a; --toast-accent: #8a5c14; --gold-soft: #f7d9a8; --gold-ink: #241700;
-    --feed: #ff9e7d; --sleep: #a89bff; --diaper: #52cfb2; --good: #58d69e;
-    --glow: 0 0 18px rgba(240,192,122,.28); --lit: inset 0 1px 0 rgba(255,255,255,.07);
-    --shadow: 0 10px 30px rgba(0,0,0,.35); --sheet-shadow: 0 -16px 48px rgba(0,0,0,.55);
-    --ring: rgba(240,192,122,.5); --scrim: rgba(4,8,18,.55); --panel-ink: #241700;
+    --bg: #181022; --bg-glow: #2a1c3f; --s0: #1f1629; --s1: #221830; --s2: #2b1f3d;
+    --text: #f7f0fb; --dim: #d3c3e6; --faint: #a996c2;
+    --gold: #ffb37a; --gold-text: #ffb37a; --toast-accent: #bd4515; --gold-soft: #ffc99a; --gold-ink: #2a1200;
+    --feed: #ffab7a; --sleep: #b6a3ff; --diaper: #6fe0b8; --good: #58d69e;
+    --panel-ink-del: #2a1200; --panel-ink-edit: #2a1200;
+    --glow: 0 0 18px rgba(255,179,122,.3); --lit: inset 0 1px 0 rgba(255,255,255,.07);
+    --shadow: 0 10px 30px rgba(0,0,0,.4); --sheet-shadow: 0 -16px 48px rgba(0,0,0,.55);
+    --ring: rgba(255,179,122,.5); --scrim: rgba(8,4,14,.6);
   }
   /* time-of-day tint (dark ground only, subtle) */
-  body[data-tod="dusk"]   { --bg-tint: rgba(90,73,200,.10); }
-  body[data-tod="night"]  { --bg-tint: rgba(20,30,70,.0); }
-  body[data-tod="predawn"]{ --bg-tint: rgba(240,192,122,.06); }
-  body[data-tod="day"]    { --bg-tint: rgba(240,192,122,.04); }
+  body[data-tod="dusk"]   { --bg-tint: rgba(138,111,240,.10); }
+  body[data-tod="night"]  { --bg-tint: rgba(30,20,60,.0); }
+  body[data-tod="predawn"]{ --bg-tint: rgba(255,179,122,.07); }
+  body[data-tod="day"]    { --bg-tint: rgba(255,179,122,.05); }
 
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
@@ -65,7 +71,7 @@
       radial-gradient(130% 55% at 50% -10%, var(--bg-glow), transparent 58%),
       var(--bg);
     color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+    font-family: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased; line-height: 1.45; min-height: 100dvh;
   }
   .disp { font-family: ui-rounded, "SF Pro Rounded", -apple-system, system-ui, sans-serif; }
@@ -78,7 +84,7 @@
 
   /* ============ header — quiet ============ */
   header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-  .baby-btn { all: unset; cursor: pointer; display: flex; flex-direction: column; gap: 1px; border-radius: 10px; min-height: 44px; justify-content: center; }
+  .baby-btn { all: unset; cursor: pointer; display: flex; flex-direction: column; gap: 1px; border-radius: 14px; min-height: 44px; justify-content: center; }
   .baby-btn .hi { font-size: 13px; color: var(--faint); }
   .baby-btn .nm { font-size: 20px; font-weight: 700; letter-spacing: -.01em; }
   .baby-btn .nm .age { font-size: 13px; font-weight: 600; color: var(--faint); margin-left: 6px; }
@@ -90,14 +96,15 @@
   .whochip:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
   .av { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
     font-size: 12px; font-weight: 800; color: #fff; flex: none; }
-  .icobtn { all: unset; cursor: pointer; width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center;
-    color: var(--dim); }
+  .icobtn { all: unset; cursor: pointer; width: 44px; height: 44px; border-radius: 18px; display: grid; place-items: center;
+    color: var(--dim); transition: transform .3s cubic-bezier(.34,1.4,.64,1); }
+  .icobtn:active { transform: scale(.9) rotate(-6deg); }
   .icobtn svg { width: 21px; height: 21px; }
   .icobtn:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
 
   .simplebanner { display: none; align-items: center; gap: 10px;
     background: color-mix(in srgb, var(--diaper) 14%, var(--s1));
-    border-radius: 14px; padding: 11px 13px; box-shadow: var(--lit); }
+    border-radius: 18px; padding: 11px 13px; box-shadow: var(--lit); }
   .simplebanner.on { display: flex; }
   .simplebanner .txt { flex: 1; font-size: 13.5px; font-weight: 600; }
   .simplebanner button { all: unset; cursor: pointer; font-size: 13.5px; font-weight: 700; color: var(--diaper); padding: 8px; }
@@ -114,34 +121,51 @@
   .hero .next b { color: var(--gold-text); font-weight: 700; }
   .hero .why { font-size: 13px; color: var(--faint); }
 
-  /* ============ predict — the one-tap "do this next" card ============ */
+  /* ============ predict — the one-tap "do this next" cards ============ */
+  .predict-group { display: flex; flex-direction: column; gap: 9px; }
   .predict { all: unset; cursor: pointer; box-sizing: border-box; display: flex; align-items: center; gap: 13px;
-    width: 100%; padding: 13px 14px; border-radius: 18px;
-    background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 13%, var(--s1)), var(--s1));
-    box-shadow: var(--lit), var(--shadow); min-height: 64px; }
-  .predict:active { transform: translateY(1px) scale(.994); }
+    width: 100%; padding: 14px 15px; border-radius: 24px;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--gold) 16%, var(--s1)), var(--s1));
+    box-shadow: var(--lit), var(--shadow); min-height: 68px;
+    transition: transform .32s cubic-bezier(.34,1.4,.64,1); }
+  .predict:active { transform: scale(.97); }
   .predict:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
-  .predict-ic { width: 42px; height: 42px; border-radius: 13px; flex: none; display: grid; place-items: center;
-    background: color-mix(in srgb, currentColor 16%, var(--s1)); }
-  .predict-ic svg { width: 22px; height: 22px; }
+  .predict.pop { animation: predictpop .5s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes predictpop { 0% { transform: scale(.9); } 55% { transform: scale(1.035); } 100% { transform: scale(1); } }
+  .predict-ic { width: 44px; height: 44px; border-radius: 16px; flex: none; display: grid; place-items: center;
+    background: color-mix(in srgb, currentColor 18%, var(--s1)); }
+  .predict-ic svg { width: 23px; height: 23px; }
   .predict-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; text-align: left; }
-  .predict-lead { font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--gold-text); }
-  .predict-msg { font-size: 15.5px; font-weight: 700; color: var(--text); }
+  .predict-lead { font-size: 12px; font-weight: 700; color: var(--gold-text); }
+  .predict-msg { font-size: 16px; font-weight: 700; color: var(--text); }
   .predict-why { font-size: 12px; color: var(--faint); }
-  .predict-go { flex: none; font-size: 12px; font-weight: 700; color: var(--gold-text);
-    padding: 9px 12px; border-radius: 11px; background: color-mix(in srgb, var(--gold) 15%, transparent); white-space: nowrap; }
+  .predict-go { flex: none; font-size: 12.5px; font-weight: 700; color: var(--gold-text);
+    padding: 9px 13px; border-radius: 20px; background: color-mix(in srgb, var(--gold) 16%, transparent); white-space: nowrap; }
   body.simple .predict-why { display: none; }
-  body.simple .predict { min-height: 76px; }
-  body.simple .predict-msg { font-size: 17px; }
+  body.simple .predict { min-height: 78px; }
+  body.simple .predict-msg { font-size: 17.5px; }
+
+  .predict2 { all: unset; cursor: pointer; box-sizing: border-box; display: flex; align-items: center; gap: 10px;
+    width: 100%; padding: 10px 14px 10px 11px; border-radius: 18px;
+    background: var(--s2); box-shadow: var(--lit); min-height: 46px;
+    transition: transform .32s cubic-bezier(.34,1.4,.64,1); }
+  .predict2:active { transform: scale(.97); }
+  .predict2:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  .predict2-ic { width: 27px; height: 27px; border-radius: 10px; flex: none; display: grid; place-items: center;
+    background: color-mix(in srgb, currentColor 18%, var(--s1)); }
+  .predict2-ic svg { width: 15px; height: 15px; }
+  .predict2-msg { flex: 1; font-size: 13px; font-weight: 650; color: var(--dim); text-align: left; }
+  .predict2-go { flex: none; font-size: 16px; font-weight: 800; color: var(--faint); }
+  body.simple .predict2 { display: none; }
 
   /* ============ ribbon — signature surface ============ */
-  .ribbon { background: var(--s1); border-radius: 20px; padding: 16px 16px 12px; box-shadow: var(--lit), var(--shadow); }
+  .ribbon { background: var(--s1); border-radius: 26px; padding: 16px 16px 12px; box-shadow: var(--lit), var(--shadow); }
   .ribbon .rhead { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
   .ribbon .rhead h2 { margin: 0; font-size: 13px; font-weight: 700; color: var(--dim); }
   .ribbon .rhead .meta { font-size: 13px; color: var(--faint); }
   .timeline { position: relative; height: 64px; }
   .tl-track { position: absolute; left: 0; right: 0; top: 16px; height: 32px;
-    background: var(--s0); border-radius: 10px; box-shadow: var(--lit); }
+    background: var(--s0); border-radius: 16px; box-shadow: var(--lit); }
   .tl-grid { position: absolute; top: 16px; height: 32px; width: 1px; background: color-mix(in srgb, var(--faint) 22%, transparent); }
   .tl-hour { position: absolute; top: 52px; transform: translateX(-50%); font-size: 12px; color: var(--faint); }
   .tl-now { position: absolute; top: 6px; height: 50px; width: 2px; background: var(--gold-text); border-radius: 2px; z-index: 4; box-shadow: 0 0 10px var(--gold); }
@@ -172,9 +196,9 @@
   .recent h2 .seeall { all: unset; cursor: pointer; font-size: 13px; font-weight: 700; color: var(--gold-text); padding: 4px; }
   .recent h2 .seeall:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 6px; }
   .row { display: flex; align-items: center; gap: 12px; padding: 10px 0; min-height: 52px; }
-  .rowbtn { all: unset; cursor: pointer; display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; border-radius: 12px; min-height: 44px; }
+  .rowbtn { all: unset; cursor: pointer; display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; border-radius: 16px; min-height: 44px; }
   .rowbtn:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
-  .glyph { width: 40px; height: 40px; border-radius: 13px; flex: none; display: grid; place-items: center; position: relative;
+  .glyph { width: 40px; height: 40px; border-radius: 16px; flex: none; display: grid; place-items: center; position: relative;
     background: var(--s1); box-shadow: var(--lit), var(--shadow); }
   .glyph svg { width: 20px; height: 20px; }
   .glyph .who { position: absolute; right: -5px; bottom: -5px; width: 18px; height: 18px; border-radius: 50%;
@@ -190,7 +214,7 @@
   .timerbar { position: fixed; left: 50%; transform: translateX(-50%);
     bottom: calc(104px + env(safe-area-inset-bottom)); z-index: 40;
     width: min(444px, calc(100vw - 32px)); display: none; align-items: center; gap: 12px;
-    background: var(--s2); border-radius: 20px; padding: 13px 12px 13px 18px;
+    background: var(--s2); border-radius: 26px; padding: 13px 12px 13px 18px;
     box-shadow: var(--lit), var(--shadow), var(--glow); }
   .timerbar.on { display: flex; }
   .timerbar .pulse { width: 12px; height: 12px; border-radius: 50%; flex: none; animation: pulse 1.8s ease-in-out infinite; }
@@ -198,10 +222,12 @@
   .timerbar .k { font-size: 12.5px; color: var(--dim); font-weight: 650; }
   .timerbar .v { font-size: 34px; font-weight: 700; letter-spacing: -.01em; line-height: 1.1; text-shadow: var(--glow); }
   .timerbar .side { all: unset; cursor: pointer; font-size: 13px; font-weight: 700; color: var(--feed);
-    padding: 12px 12px; border-radius: 12px; min-height: 44px; box-sizing: border-box; }
+    padding: 12px 12px; border-radius: 16px; min-height: 44px; box-sizing: border-box; }
   .timerbar .stop { all: unset; cursor: pointer; font-size: 15px; font-weight: 800; color: var(--gold-ink);
-    background: var(--gold); padding: 13px 20px; border-radius: 14px; min-height: 48px; box-sizing: border-box;
-    box-shadow: 0 0 14px color-mix(in srgb, var(--gold) 45%, transparent); }
+    background: var(--gold); padding: 13px 20px; border-radius: 20px; min-height: 48px; box-sizing: border-box;
+    box-shadow: 0 0 14px color-mix(in srgb, var(--gold) 45%, transparent);
+    transition: transform .3s cubic-bezier(.34,1.4,.64,1); }
+  .timerbar .stop:active { transform: scale(.93); }
   .timerbar .side:focus-visible, .timerbar .stop:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
   @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1);} 50% { opacity: .4; transform: scale(.82);} }
 
@@ -211,10 +237,10 @@
     background: linear-gradient(180deg, transparent, var(--bg) 34%); }
   .actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; width: min(480px, 100%); }
   .act { all: unset; cursor: pointer; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 5px;
-    padding: 14px 4px 12px; border-radius: 20px; font-weight: 700; font-size: 13px; min-height: 74px;
+    padding: 14px 4px 12px; border-radius: 26px; font-weight: 700; font-size: 13px; min-height: 74px;
     background: var(--s1); box-shadow: var(--lit), var(--shadow);
-    transition: transform .08s ease; color: var(--text); position: relative; user-select: none; -webkit-user-select: none; }
-  .act:active { transform: translateY(2px) scale(.985); }
+    transition: transform .3s cubic-bezier(.34,1.4,.64,1); color: var(--text); position: relative; user-select: none; -webkit-user-select: none; }
+  .act:active { transform: scale(.9); }
   .act:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
   .act svg { width: 26px; height: 26px; }
   .act.nurse { color: var(--feed); } .act.bottle { color: var(--feed); }
@@ -242,8 +268,8 @@
     opacity: 0; pointer-events: none; transition: opacity .2s ease; }
   .scrim.on { opacity: 1; pointer-events: auto; }
   .sheet { position: fixed; left: 50%; bottom: 0; transform: translate(-50%, 100%); z-index: 51; width: min(480px, 100%);
-    background: var(--s1); border-radius: 26px 26px 0 0; box-shadow: var(--sheet-shadow), var(--lit);
-    padding: 10px 20px calc(24px + env(safe-area-inset-bottom)); transition: transform .26s cubic-bezier(.22,.8,.28,1);
+    background: var(--s1); border-radius: 32px 32px 0 0; box-shadow: var(--sheet-shadow), var(--lit);
+    padding: 10px 20px calc(24px + env(safe-area-inset-bottom)); transition: transform .34s cubic-bezier(.32,1.2,.4,1);
     max-height: 88dvh; overflow-y: auto; }
   .sheet.on { transform: translate(-50%, 0); }
   .grip { width: 40px; height: 4px; border-radius: 3px; background: color-mix(in srgb, var(--faint) 40%, transparent); margin: 4px auto 14px; }
@@ -253,10 +279,12 @@
 
   .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
   .seg.three { grid-template-columns: repeat(3, 1fr); }
-  .chip { all: unset; cursor: pointer; box-sizing: border-box; text-align: center; padding: 17px 8px; border-radius: 16px;
+  .chip { all: unset; cursor: pointer; box-sizing: border-box; text-align: center; padding: 17px 8px; border-radius: 22px;
     font-size: 15px; font-weight: 700; background: var(--s2); box-shadow: var(--lit); color: var(--text);
-    display: flex; flex-direction: column; align-items: center; gap: 7px; min-height: 64px; }
+    display: flex; flex-direction: column; align-items: center; gap: 7px; min-height: 64px;
+    transition: transform .3s cubic-bezier(.34,1.4,.64,1); }
   .chip svg { width: 24px; height: 24px; }
+  .chip:active { transform: scale(.94); }
   .chip:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
   .chip[aria-pressed="true"] { box-shadow: var(--lit), inset 0 0 0 1.5px currentColor; background: color-mix(in srgb, currentColor 13%, var(--s1)); }
   .chip.f { color: var(--feed); } .chip.s { color: var(--sleep); } .chip.d { color: var(--diaper); }
@@ -264,38 +292,41 @@
   .chip small { color: var(--faint); font-size: 12px; font-weight: 600; }
 
   .whenrow { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 14px; }
-  .whenrow button { all: unset; cursor: pointer; padding: 11px 14px; border-radius: 12px; font-size: 13.5px; font-weight: 700;
+  .whenrow button { all: unset; cursor: pointer; padding: 11px 14px; border-radius: 18px; font-size: 13.5px; font-weight: 700;
     background: var(--s2); box-shadow: var(--lit); color: var(--dim); min-height: 44px; box-sizing: border-box; }
   .whenrow button[aria-pressed="true"] { color: var(--text); box-shadow: var(--lit), inset 0 0 0 1.5px var(--gold); background: color-mix(in srgb, var(--gold) 11%, var(--s1)); }
-  .whenrow input[type="time"] { font-family: inherit; font-size: 13.5px; padding: 9px 11px; border-radius: 12px;
+  .whenrow input[type="time"] { font-family: inherit; font-size: 13.5px; padding: 9px 11px; border-radius: 16px;
     background: var(--s2); border: none; box-shadow: var(--lit); color: var(--text); min-height: 44px; box-sizing: border-box; }
 
   .presets { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-  .presets button { all: unset; cursor: pointer; padding: 12px 16px; border-radius: 13px; font-size: 15px; font-weight: 700;
-    background: var(--s2); box-shadow: var(--lit); color: var(--text); min-height: 46px; box-sizing: border-box; }
+  .presets button { all: unset; cursor: pointer; padding: 12px 16px; border-radius: 20px; font-size: 15px; font-weight: 700;
+    background: var(--s2); box-shadow: var(--lit); color: var(--text); min-height: 46px; box-sizing: border-box;
+    transition: transform .3s cubic-bezier(.34,1.4,.64,1); }
   .presets button[aria-pressed="true"] { box-shadow: var(--lit), inset 0 0 0 1.5px var(--feed); background: color-mix(in srgb, var(--feed) 11%, var(--s1)); }
+  .presets button:active { transform: scale(.93); }
   .presets button:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
 
   .stepper { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--s2);
-    box-shadow: var(--lit); border-radius: 16px; padding: 12px 14px; margin-bottom: 14px; }
+    box-shadow: var(--lit); border-radius: 22px; padding: 12px 14px; margin-bottom: 14px; }
   .stepper .amt { font-size: 32px; font-weight: 700; letter-spacing: -.02em; }
   .stepper .amt small { font-size: 15px; color: var(--dim); font-weight: 600; }
   .stepper .pm { display: flex; gap: 8px; }
   .rnd { all: unset; cursor: pointer; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center;
-    font-size: 24px; font-weight: 700; background: var(--s1); box-shadow: var(--lit), var(--shadow); color: var(--text); }
+    font-size: 24px; font-weight: 700; background: var(--s1); box-shadow: var(--lit), var(--shadow); color: var(--text);
+    transition: transform .3s cubic-bezier(.34,1.4,.64,1); }
   .rnd:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
-  .rnd:active { transform: scale(.94); }
+  .rnd:active { transform: scale(.86); }
 
   .field { width: 100%; box-sizing: border-box; background: var(--s2); border: none; box-shadow: var(--lit); color: var(--text);
-    border-radius: 14px; padding: 14px; font-size: 15px; margin-bottom: 14px; font-family: inherit; min-height: 48px; }
+    border-radius: 18px; padding: 14px; font-size: 15px; margin-bottom: 14px; font-family: inherit; min-height: 48px; }
   .field:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
   label.lbl { font-size: 12.5px; color: var(--faint); font-weight: 600; display: block; margin: -6px 0 6px; }
 
-  .cta { all: unset; cursor: pointer; box-sizing: border-box; width: 100%; text-align: center; padding: 16px; border-radius: 16px;
+  .cta { all: unset; cursor: pointer; box-sizing: border-box; width: 100%; text-align: center; padding: 16px; border-radius: 22px;
     font-size: 16px; font-weight: 800; background: var(--gold); color: var(--gold-ink); min-height: 52px;
-    box-shadow: var(--lit), var(--shadow); }
+    box-shadow: var(--lit), var(--shadow); transition: transform .3s cubic-bezier(.34,1.4,.64,1); }
   .cta:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
-  .cta:active { transform: translateY(1px); }
+  .cta:active { transform: scale(.97); }
   .cta.ghost { background: var(--s2); color: var(--text); box-shadow: var(--lit); }
   .cta.danger { background: color-mix(in srgb, var(--feed) 13%, var(--s1)); color: var(--feed); box-shadow: var(--lit); }
   .ctarow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -305,7 +336,7 @@
     background: linear-gradient(0deg, var(--s1) 72%, transparent); }
 
   .unitrow { display: flex; gap: 8px; margin-bottom: 14px; }
-  .unitrow button { all: unset; cursor: pointer; padding: 10px 16px; border-radius: 11px; font-size: 13.5px; font-weight: 700;
+  .unitrow button { all: unset; cursor: pointer; padding: 10px 16px; border-radius: 16px; font-size: 13.5px; font-weight: 700;
     background: var(--s2); box-shadow: var(--lit); color: var(--dim); min-height: 44px; box-sizing: border-box; }
   .unitrow button[aria-pressed="true"] { color: var(--text); box-shadow: var(--lit), inset 0 0 0 1.5px var(--gold); }
 
@@ -317,12 +348,12 @@
   .member .badges { display: flex; gap: 6px; margin-top: 3px; }
   .member .tag { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; background: var(--s2); color: var(--dim); }
   .logas { all: unset; cursor: pointer; font-size: 13px; font-weight: 700; color: var(--gold-text);
-    padding: 11px 13px; border-radius: 11px; box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--gold) 40%, transparent); min-height: 44px; box-sizing: border-box; }
+    padding: 11px 13px; border-radius: 16px; box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--gold) 40%, transparent); min-height: 44px; box-sizing: border-box; }
   .logas[data-cur="1"] { color: var(--good); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--good) 45%, transparent); cursor: default; }
   .logas:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
 
   .invite { display: flex; align-items: center; gap: 10px; background: var(--s2); box-shadow: var(--lit);
-    border-radius: 14px; padding: 13px 15px; margin-bottom: 8px; }
+    border-radius: 18px; padding: 13px 15px; margin-bottom: 8px; }
   .invite code { flex: 1; font-size: 14px; font-weight: 700; letter-spacing: .04em; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
   .invite button { all: unset; cursor: pointer; font-size: 13.5px; font-weight: 700; color: var(--gold-text); padding: 10px; min-height: 44px; box-sizing: border-box; }
   .freeline { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--good); font-weight: 650; margin: 2px 0 6px; }
@@ -338,15 +369,15 @@
   .sw:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
 
   .picker { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
-  .picker button { all: unset; cursor: pointer; padding: 12px 14px; border-radius: 13px; font-size: 13.5px; font-weight: 700;
+  .picker button { all: unset; cursor: pointer; padding: 12px 14px; border-radius: 18px; font-size: 13.5px; font-weight: 700;
     background: var(--s2); box-shadow: var(--lit); color: var(--dim); display: flex; align-items: center; gap: 7px; min-height: 46px; box-sizing: border-box; }
   .picker button[aria-pressed="true"] { color: var(--text); box-shadow: var(--lit), inset 0 0 0 1.5px var(--gold); }
   .hint { font-size: 13px; color: var(--faint); margin: -2px 0 14px; }
 
   .toast { position: fixed; left: 50%; transform: translate(-50%, 20px); bottom: calc(196px + env(safe-area-inset-bottom)); z-index: 60;
-    background: var(--text); color: var(--bg); padding: 13px 16px; border-radius: 14px; font-size: 14px; font-weight: 700;
+    background: var(--text); color: var(--bg); padding: 13px 16px; border-radius: 20px; font-size: 14px; font-weight: 700;
     display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow); opacity: 0; pointer-events: none;
-    transition: opacity .2s ease, transform .2s ease; max-width: 92vw; }
+    transition: opacity .25s ease, transform .32s cubic-bezier(.34,1.4,.64,1); max-width: 92vw; }
   .toast.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
   .toast .chk { width: 22px; height: 22px; border-radius: 50%; background: var(--good); color: #fff; display: grid; place-items: center; flex: none; font-size: 13px; }
   .toast button { all: unset; cursor: pointer; color: var(--toast-accent); font-weight: 800; padding: 8px; margin: -8px -4px; }
@@ -370,9 +401,8 @@
      Edit, on the left. --- */
   .rowwrap { position: relative; border-radius: 14px; overflow: hidden; touch-action: pan-y; }
   .swipeunder { position: absolute; inset: 0; display: flex; align-items: stretch; justify-content: space-between; }
-  .swipeunder .sw-del, .swipeunder .sw-edit { flex: 1; display: flex; align-items: center; font-size: 13px; font-weight: 700; color: var(--panel-ink); }
-  .swipeunder .sw-edit { justify-content: flex-start; padding-left: 18px; background: var(--dim); }
-  .swipeunder .sw-del { justify-content: flex-end; padding-right: 18px; background: var(--feed); }
+  .swipeunder .sw-edit { flex: 1; display: flex; align-items: center; font-size: 13px; font-weight: 700;
+    justify-content: flex-start; padding-left: 18px; background: var(--dim); color: var(--panel-ink-edit); }
   .rowbtn { background: var(--bg); position: relative; z-index: 1; transition: transform .22s cubic-bezier(.22,.8,.28,1); }
   .row.swiping .rowbtn { transition: none; }
   /* revealed = delete swiped-open and awaiting a confirming tap, not yet
@@ -381,7 +411,7 @@
      .sw-edit label) so it needs its own reset + the shared panel styling
      re-declared, since `all: unset` on the button wipes it. */
   .swipeunder .sw-del { all: unset; box-sizing: border-box; cursor: pointer;
-    flex: 1; display: flex; align-items: center; font-size: 13px; font-weight: 700; color: var(--panel-ink);
+    flex: 1; display: flex; align-items: center; font-size: 13px; font-weight: 700; color: var(--panel-ink-del);
     justify-content: flex-end; padding-right: 18px; background: var(--feed); }
   .swipeunder .sw-del:focus-visible { outline: 2px solid var(--ring); outline-offset: -3px; }
 
@@ -415,15 +445,22 @@
     <span class="big disp tnum" id="heroBig">—</span>
   </section>
 
-  <button class="predict" id="predictBtn" hidden>
-    <span class="predict-ic" id="predictIc"></span>
-    <span class="predict-txt">
-      <span class="predict-lead" id="predictLead">Likely next</span>
-      <span class="predict-msg" id="predictMsg"></span>
-      <span class="predict-why" id="predictWhy"></span>
-    </span>
-    <span class="predict-go">Tap to log</span>
-  </button>
+  <div class="predict-group">
+    <button class="predict" id="predictBtn" hidden>
+      <span class="predict-ic" id="predictIc"></span>
+      <span class="predict-txt">
+        <span class="predict-lead" id="predictLead">Coming up</span>
+        <span class="predict-msg" id="predictMsg"></span>
+        <span class="predict-why" id="predictWhy"></span>
+      </span>
+      <span class="predict-go">Log it</span>
+    </button>
+    <button class="predict2" id="predict2Btn" hidden>
+      <span class="predict2-ic" id="predict2Ic"></span>
+      <span class="predict2-msg" id="predict2Msg"></span>
+      <span class="predict2-go" aria-hidden="true">›</span>
+    </button>
+  </div>
 
   <section class="ribbon">
     <div class="rhead"><h2 id="tlTitle">Today's rhythm</h2><span class="meta" id="tlDate"></span></div>
@@ -497,9 +534,9 @@
       last_fed:"Last fed", ago:"ago",
       todays_rhythm:"Today's rhythm", recent:"Recent", now:"Now", asleep:"Asleep", awake:"Awake",
       sleep_today:"Sleep today", diapers:"Diapers", fed_today:"Fed today", last_diaper:"Last diaper", right_now:"Right now",
-      saved:"saved", when:"When", today:"today", tap_start:"tap = start", tap_wet:"tap = wet",
+      saved:"logged", when:"When", today:"today", tap_start:"tap = start", tap_wet:"tap = wet",
       simple_mode:"Simple mode", switch_back:"Switch back", logging_as:"logging as",
-      nothing:"Nothing logged yet", tapbelow:"Tap a button below to start",
+      nothing:"All quiet for now", tapbelow:"Tap a button below when you're ready",
       log_bottle:"Log bottle", log_solids:"Log solids", choose_diaper:"Log a diaper", onetap:"One tap.",
       never_paywalled:"Free forever — sharing is never behind a paywall." },
     tl: { g_morning:"Magandang umaga", g_afternoon:"Magandang hapon", g_evening:"Magandang gabi", g_night:"Gabing-gabi na",
@@ -508,9 +545,9 @@
       last_fed:"Huling pakain", ago:"ang nakalipas",
       todays_rhythm:"Takbo ngayong araw", recent:"Mga huling ginawa", now:"Ngayon", asleep:"Tulog", awake:"Gising",
       sleep_today:"Tulog ngayon", diapers:"Lampin", fed_today:"Nainom ngayon", last_diaper:"Huling lampin", right_now:"Ngayon mismo",
-      saved:"na-save", when:"Kailan", today:"ngayon", tap_start:"pindot = simula", tap_wet:"pindot = basa",
+      saved:"na-log", when:"Kailan", today:"ngayon", tap_start:"pindot = simula", tap_wet:"pindot = basa",
       simple_mode:"Simpleng mode", switch_back:"Bumalik", logging_as:"nagre-record bilang",
-      nothing:"Wala pang record", tapbelow:"Pindutin ang buton sa ibaba",
+      nothing:"Tahimik muna", tapbelow:"Pindutin ang buton sa ibaba kapag handa na",
       log_bottle:"I-record ang bote", log_solids:"I-record ang pagkain", choose_diaper:"Mag-record ng lampin", onetap:"Isang pindot lang.",
       never_paywalled:"Libre magpakailanman — hindi kailanman babayaran ang pagbabahagi." }
   };
@@ -657,25 +694,25 @@
     big.innerHTML = lf ? '<b>'+agoStr(lf.start)+'</b> '+t("ago") : "—";
   }
 
-  /* ---------- predicted next action ----------
+  /* ---------- predicted next action(s) ----------
      Looks at feed/sleep/diaper independently: the average gap between the
      last few of that type vs. how long it's actually been since the last
-     one. Whichever type is furthest into its typical cycle (highest
-     elapsed/average ratio) is the prediction — as long as there's enough
-     history (2+ events) and it's at least ~55% of the way through a typical
-     cycle, so this doesn't fire five minutes after a feed just because
-     "feed" happened to have the thinnest history. No timer running, since
-     there's no "next action" question mid-feed/mid-sleep — the hero already
-     covers that. */
-  function computePrediction() {
-    if (db.timer) return null;
+     one. Sorted by how far each type is into its typical cycle (highest
+     elapsed/average ratio first) — the top 2 that clear ~55% of a typical
+     cycle become the primary card and a lighter secondary chip, so the app
+     always offers a second guess when the data supports one instead of
+     betting everything on a single call. No timer running, since there's
+     no "next action" question mid-feed/mid-sleep — the hero already covers
+     that. */
+  function computePredictions() {
+    if (db.timer) return [];
     var now=Date.now();
     var byType = {
       feed:   db.events.filter(function (x){ return x.type==="feed"; }),
       sleep:  db.events.filter(function (x){ return x.type==="sleep"; }),
       diaper: db.events.filter(function (x){ return x.type==="diaper"; })
     };
-    var best=null;
+    var cands=[];
     Object.keys(byType).forEach(function (type) {
       var evs=byType[type];
       if (evs.length<2) return;
@@ -685,10 +722,10 @@
       var avg=gaps.reduce(function (a,b){return a+b;},0)/gaps.length;
       if (avg<=0) return;
       var last=evs[evs.length-1], elapsed=now-last.start, ratio=elapsed/avg;
-      if (!best || ratio>best.ratio) best={ type:type, evs:evs, avg:avg, elapsed:elapsed, ratio:ratio };
+      cands.push({ type:type, evs:evs, avg:avg, elapsed:elapsed, ratio:ratio });
     });
-    if (!best || best.ratio<0.55) return null;
-    return best;
+    cands.sort(function (a,b){ return b.ratio-a.ratio; });
+    return cands.filter(function (c){ return c.ratio>=0.55; }).slice(0,2);
   }
   function predictedFeedSub(evs) {
     var subs=evs.slice(-5).map(function (e){ return e.sub; }).filter(function (s){ return s==="nursing"||s==="bottle"; });
@@ -697,16 +734,9 @@
     if (counts.nursing===counts.bottle) return subs[subs.length-1];
     return counts.nursing>(counts.bottle||0) ? "nursing" : "bottle";
   }
-
-  function renderPredict() {
-    var btn=$("#predictBtn");
-    ["actNurse","actBottle","actSleep","actDiaper"].forEach(function (id){ $("#"+id).classList.remove("predicted"); });
-    var p=computePrediction();
-    if (!p) { btn.hidden=true; btn.onclick=null; return; }
-
+  function buildPredictAction(p) {
     var icon, color, label, actFn, badgeId, cycleWord =
       p.type==="feed" ? "feeds" : p.type==="sleep" ? "sleeps" : "diapers";
-
     if (p.type==="sleep") {
       icon=ICONS.sleep; color="var(--sleep)"; label=t("sleep"); badgeId="actSleep";
       actFn=function (){ startTimer("sleep"); };
@@ -728,15 +758,37 @@
         actFn=function (){ startTimer("feed", side); };
       }
     }
+    return { icon:icon, color:color, label:label, actFn:actFn, badgeId:badgeId, cycleWord:cycleWord };
+  }
 
-    $("#predictIc").innerHTML=icon; $("#predictIc").style.color=color;
-    $("#predictLead").textContent = p.ratio>=1 ? "Likely ready" : "Likely next";
-    $("#predictMsg").textContent = label;
-    $("#predictWhy").textContent = "Usually ~"+durShort(p.avg)+" between "+cycleWord+" · last one "+durShort(p.elapsed)+" ago";
-    btn.setAttribute("aria-label", "Log "+label+" now — predicted next action");
+  var lastPredictMsg=null;
+  function renderPredict() {
+    var btn=$("#predictBtn"), btn2=$("#predict2Btn");
+    ["actNurse","actBottle","actSleep","actDiaper"].forEach(function (id){ $("#"+id).classList.remove("predicted"); });
+    var list=computePredictions();
+    if (!list.length) { btn.hidden=true; btn.onclick=null; btn2.hidden=true; btn2.onclick=null; lastPredictMsg=null; return; }
+
+    var p1=list[0], a1=buildPredictAction(p1);
+    $("#predictIc").innerHTML=a1.icon; $("#predictIc").style.color=a1.color;
+    $("#predictLead").textContent = p1.ratio>=1 ? "Ready when you are" : "Coming up";
+    $("#predictMsg").textContent = a1.label;
+    $("#predictWhy").textContent = "Usually ~"+durShort(p1.avg)+" between "+a1.cycleWord+" · last one "+durShort(p1.elapsed)+" ago";
+    btn.setAttribute("aria-label", "Log "+a1.label+" now — predicted next action");
+    if (btn.hidden || lastPredictMsg!==a1.label) { btn.classList.remove("pop"); void btn.offsetWidth; btn.classList.add("pop"); }
     btn.hidden=false;
-    btn.onclick=function (){ buzz(16); actFn(); };
-    if (badgeId) $("#"+badgeId).classList.add("predicted");
+    btn.onclick=function (){ buzz(16); a1.actFn(); };
+    if (a1.badgeId) $("#"+a1.badgeId).classList.add("predicted");
+    lastPredictMsg=a1.label;
+
+    if (list.length>1) {
+      var p2=list[1], a2=buildPredictAction(p2);
+      $("#predict2Ic").innerHTML=a2.icon; $("#predict2Ic").style.color=a2.color;
+      $("#predict2Msg").textContent = "Also: "+a2.label;
+      btn2.setAttribute("aria-label", "Log "+a2.label+" now — second predicted option");
+      btn2.hidden=false;
+      btn2.onclick=function (){ buzz(16); a2.actFn(); };
+      if (a2.badgeId) $("#"+a2.badgeId).classList.add("predicted");
+    } else { btn2.hidden=true; btn2.onclick=null; }
   }
 
   function renderTimeline() {
