@@ -121,23 +121,25 @@
   .hero .next b { color: var(--gold-text); font-weight: 700; }
   .hero .why { font-size: 14px; color: var(--faint); }
 
-  /* ============ baby-hero — a cartoon baby with last-feed at the mouth and
-     last-diaper at the legs, each with who did it. The two rows are spread to
-     the baby's head/foot height so they read as "coming from" those spots. */
+  /* ============ baby-hero — a cartoon baby that IS the "current status" zone:
+     sleep state near the head, last-feed at the mouth, last-diaper at the legs,
+     each with who/how-long. Three rows spread to the baby's head→foot height so
+     they read as "coming from" those spots. */
   .babyhero { display: flex; align-items: stretch; gap: 15px; margin: 2px 0 20px; }
   .babyart { flex: 0 0 auto; display: flex; align-items: center; }
-  .babyart svg { width: 82px; height: 120px; display: block; }
-  .babyrows { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 7px 0; }
-  .brow { display: flex; align-items: center; gap: 12px; }
-  .brow .bic { flex: none; width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center;
+  .babyart svg { width: 84px; height: 132px; display: block; }
+  .babyrows { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 2px 0; }
+  .brow { display: flex; align-items: center; gap: 11px; }
+  .brow .bic { flex: none; width: 38px; height: 38px; border-radius: 13px; display: grid; place-items: center;
     background: color-mix(in srgb, currentColor 15%, var(--s1)); box-shadow: var(--lit); }
+  .brow.head .bic { color: var(--sleep); }
   .brow.mouth .bic { color: var(--feed); }
   .brow.legs .bic { color: var(--diaper); }
-  .brow .bic svg { width: 22px; height: 22px; }
+  .brow .bic svg { width: 20px; height: 20px; }
   .brow .btxt { min-width: 0; display: flex; flex-direction: column; }
-  .brow .bt1 { font-size: 17px; font-weight: 800; color: var(--text); line-height: 1.2; letter-spacing: -.01em; }
-  .brow .bt2 { font-size: 13px; color: var(--faint); font-weight: 600; margin-top: 1px; }
-  body.simple .babyart svg { width: 74px; height: 108px; }
+  .brow .bt1 { font-size: 16px; font-weight: 800; color: var(--text); line-height: 1.2; letter-spacing: -.01em; }
+  .brow .bt2 { font-size: 12.5px; color: var(--faint); font-weight: 600; margin-top: 1px; }
+  body.simple .babyart svg { width: 78px; height: 122px; }
 
   /* ============ predict — two side-by-side "do this next" tiles ============
      Both predictions get equal, large visual weight now — the manual row
@@ -184,14 +186,17 @@
     transform: translate(-50%, -50%); box-shadow: 0 0 0 2px var(--bg); }
   #list { flex: 1; min-width: 0; }
 
-  /* quiet stats strip — no cards */
-  .strip { display: flex; gap: 12px; justify-content: space-between; }
-  .stat { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-  .stat .k { font-size: 13.5px; font-weight: 600; color: var(--faint); display: flex; align-items: center; gap: 6px; }
-  .stat .k i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
-  .stat .v { font-size: 21px; font-weight: 700; letter-spacing: -.01em; }
-  .stat .v small { font-size: 13px; color: var(--dim); font-weight: 600; }
-  .stat .s { font-size: 13px; color: var(--faint); }
+  /* Last 24 Hours summary — the rolling-24h totals that head the section
+     (counts/totals only; "when did each last happen" lives on the baby-hero). */
+  .l24sum { display: flex; flex-wrap: wrap; gap: 10px 18px; margin: 0 0 13px; padding-left: 2px; }
+  .l24sum .m { display: flex; align-items: center; gap: 9px; }
+  .l24sum .mi { flex: none; width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center;
+    background: color-mix(in srgb, currentColor 16%, var(--s1)); box-shadow: var(--lit); }
+  .l24sum .mi svg { width: 16px; height: 16px; }
+  .l24sum .mt { display: flex; flex-direction: column; line-height: 1.12; min-width: 0; }
+  .l24sum .mv { font-size: 15.5px; font-weight: 800; color: var(--text); letter-spacing: -.01em; }
+  .l24sum .mv small { font-size: 12.5px; font-weight: 700; color: var(--dim); }
+  .l24sum .ml { font-size: 12px; font-weight: 600; color: var(--faint); }
 
   /* ============ recent — borderless list ============ */
   .recent h2 { margin: 0 0 8px; font-size: 15px; font-weight: 700; color: var(--dim); }
@@ -435,7 +440,7 @@
   .foot { text-align: center; font-size: 13.5px; color: var(--faint); margin-top: 2px; }
   .foot button { all: unset; cursor: pointer; color: var(--dim); text-decoration: underline; padding: 6px; }
 
-  body.simple .ribbon, body.simple .strip, body.simple .hero .why { display: none; }
+  body.simple .l24sum, body.simple .hero .why { display: none; }
 
   /* Accessible mode — a true size lever, independent of Simple mode. Scales
      type, icons, targets and spacing together via zoom (this also stands in
@@ -531,6 +536,10 @@
       </svg>
     </div>
     <div class="babyrows">
+      <div class="brow head">
+        <span class="bic" id="slpIc"></span>
+        <span class="btxt"><span class="bt1" id="slpT1">—</span><span class="bt2" id="slpT2"></span></span>
+      </div>
       <div class="brow mouth">
         <span class="bic" id="fedIc"></span>
         <span class="btxt"><span class="bt1" id="fedT1">—</span><span class="bt2" id="fedT2"></span></span>
@@ -558,10 +567,10 @@
     </div>
   </div>
 
-  <section class="strip" id="strip"></section>
 
   <section class="recent">
     <h2><span id="raTitle">Today</span></h2>
+    <div class="l24sum" id="l24sum"></div>
     <div class="last24">
       <div class="ruler24" id="ruler" aria-hidden="true"></div>
       <div id="list" class="timeline-list"></div>
@@ -649,7 +658,8 @@
       log_meds:"Log meds", log_temp:"Log temperature", meds_name_ph:"What medicine? (e.g. Tylenol)",
       meds_dose_ph:"Dose (e.g. 2.5ml)", more_sub:"Less-frequent logs.", coming_soon:"Coming soon",
       day_today:"Today", day_yesterday:"Yesterday",
-      hero_fed:"Fed", hero_changed:"Changed", by:"by", no_feed:"Not fed yet", no_change:"No changes yet" },
+      hero_fed:"Fed", hero_changed:"Changed", by:"by", no_feed:"Not fed yet", no_change:"No changes yet",
+      last_nap:"last nap", feeds:"feeds" },
     tl: { g_morning:"Magandang umaga", g_afternoon:"Magandang hapon", g_evening:"Magandang gabi", g_night:"Gabing-gabi na",
       nurse:"Pasuso", bottle:"Bote", sleep:"Tulog", diaper:"Lampin", wake:"Gising",
       left:"Kaliwa", right:"Kanan", wet:"Basa", dirty:"Dumi", mixed:"Basa at dumi", solids:"Pagkain", nursing:"Pasuso",
@@ -665,7 +675,8 @@
       log_meds:"I-record ang gamot", log_temp:"I-record ang temperatura", meds_name_ph:"Anong gamot? (hal. Tylenol)",
       meds_dose_ph:"Dosis (hal. 2.5ml)", more_sub:"Bihirang i-record.", coming_soon:"Paparating na",
       day_today:"Ngayong araw", day_yesterday:"Kahapon",
-      hero_fed:"Pinakain", hero_changed:"Pinalitan", by:"ni", no_feed:"Wala pang pakain", no_change:"Wala pang palit" }
+      hero_fed:"Pinakain", hero_changed:"Pinalitan", by:"ni", no_feed:"Wala pang pakain", no_change:"Wala pang palit",
+      last_nap:"huling idlip", feeds:"pakain" }
   };
 
   /* `simple` (fewer things on screen) and `access` (larger text & controls) are
@@ -841,7 +852,7 @@
     $("#bottleSub").textContent = db.pref.lastAmount? "tap = "+db.pref.lastAmount+" "+db.pref.unit : "";
     $("#sleepSub").textContent = db.timer&&db.timer.type==="sleep" ? "" : t("tap_start");
     $("#diaperSub").textContent = t("tap_wet");
-    renderWho(); renderHero(); renderPredict(); renderStrip(); renderRuler(); renderList(); renderTimer();
+    renderWho(); renderHero(); renderPredict(); renderSummary(); renderRuler(); renderList(); renderTimer();
     updateScrollHint(); // button visibility above can change how much is left to scroll to
   }
 
@@ -865,6 +876,20 @@
     return db.events.reduce(function (best, x){ return x.type===type && (!best || x.start>best.start) ? x : best; }, null);
   }
   function renderHero() {
+    // sleep row (near the head): current state + duration — asleep now, or how
+    // long baby's been awake since the last nap ended (pairs with the sleep
+    // prediction). t2 gives the last nap's length for context.
+    $("#slpIc").innerHTML = ICONS.sleep;
+    if (db.timer && db.timer.type==="sleep") {
+      $("#slpT1").textContent = t("asleep")+" · "+durShort(Date.now()-db.timer.start);
+      $("#slpT2").textContent = "";
+    } else {
+      var ls=db.events.reduce(function (b,x){ return x.type==="sleep" && x.end && (!b || x.end>b.end) ? x : b; }, null);
+      if (ls) {
+        $("#slpT1").textContent = t("awake")+" · "+durShort(Date.now()-ls.end);
+        $("#slpT2").textContent = t("last_nap")+" "+durShort(ls.end-ls.start);
+      } else { $("#slpT1").textContent="—"; $("#slpT2").textContent=""; }
+    }
     var lf=latestOf("feed"), ld=latestOf("diaper");
     if (lf) {
       $("#fedIc").innerHTML = fedIcon(lf.sub);
@@ -999,26 +1024,44 @@
     });
   }
 
-  function renderStrip() {
-    var t2=todays(), out="";
-    (db.pref.stats||[]).slice(0,3).forEach(function (key){
-      if (key==="sleep") { var ms=t2.filter(function (x){return x.type==="sleep"&&x.end;}).reduce(function (a,x){return a+(x.end-x.start);},0);
-        out+=stat("sleep", t("sleep_today"), ms?durShort(ms):"0m", ""); }
-      if (key==="diapers") { var ds=t2.filter(function (x){return x.type==="diaper";}); var w=ds.filter(function (x){return x.sub!=="dirty";}).length, dd=ds.filter(function (x){return x.sub!=="wet";}).length;
-        out+=stat("diaper", t("diapers"), String(ds.length), w+" "+t("wet").toLowerCase()+" · "+dd+" "+t("dirty").toLowerCase()); }
-      if (key==="feedVol") { var bs=t2.filter(function (x){return x.type==="feed"&&x.sub==="bottle";});
-        var unit=bs.length?(bs[bs.length-1].unit||"ml"):(db.pref.unit||"ml");
-        var total=bs.filter(function (x){return (x.unit||"ml")===unit;}).reduce(function (a,x){return a+(+x.amount||0);},0);
-        out+=stat("feed", t("fed_today"), (unit==="oz"?String(+total.toFixed(1)):String(total))+" "+unit, bs.length+" ×"); }
-      if (key==="lastDiaper") { var ld=null, arr=db.events.filter(function (x){return x.type==="diaper";}); if (arr.length) ld=arr[arr.length-1];
-        out+=stat("diaper", t("last_diaper"), ld?agoStr(ld.start):"—", ld?detailFor(ld):""); }
-      if (key==="state") { var v=db.timer&&db.timer.type==="sleep"?t("asleep"):t("awake");
-        out+=stat("sleep", t("right_now"), v, ""); }
-    });
-    $("#strip").innerHTML=out;
+  // Rolling last-24h window (matches the ruler + list), NOT the calendar day —
+  // parents reason in "the last day", and a midnight reset hides the overnight
+  // the other caregiver covered.
+  function last24Events() { var cut=Date.now()-86400000; return db.events.filter(function (x){ return x.start>=cut; }); }
+  function mini(color, icon, value, label) {
+    return '<span class="m" style="color:'+color+'"><span class="mi">'+icon+'</span>'+
+      '<span class="mt"><span class="mv">'+value+'</span><span class="ml">'+label+'</span></span></span>';
   }
-  function stat(type, k, v, s) {
-    return '<div class="stat"><span class="k"><i style="background:var(--faint)"></i>'+k+'</span><span class="v tnum">'+v+'</span>'+(s?'<span class="s">'+s+'</span>':'')+'</div>';
+  // The "Last 24 Hours" header: totals/counts for the window (the aggregate).
+  // Recency ("last fed/changed/slept") lives on the baby-hero, so it's never
+  // repeated here.
+  function renderSummary() {
+    var now=Date.now(), cut=now-86400000, ev=last24Events(), out="";
+    // sleep total — clamp overlapping sleeps to the window, include in-progress
+    var sleepMs=0;
+    db.events.forEach(function (x){ if (x.type==="sleep" && x.end){ var a=Math.max(x.start,cut), b=Math.min(x.end,now); if (b>a) sleepMs+=b-a; } });
+    if (db.timer && db.timer.type==="sleep") sleepMs += now - Math.max(db.timer.start,cut);
+    out += mini("var(--sleep)", ICONS.sleep, sleepMs?durShort(sleepMs):"0m", t("sleep").toLowerCase());
+    // feeds — count (+ bottle volume, unit-aware)
+    var feeds=ev.filter(function (x){ return x.type==="feed"; });
+    var bottles=feeds.filter(function (x){ return x.sub==="bottle"; }), vol="";
+    if (bottles.length) {
+      var unit=bottles[bottles.length-1].unit||db.pref.unit||"ml";
+      var tot=bottles.filter(function (x){ return (x.unit||"ml")===unit; }).reduce(function (a,x){ return a+(+x.amount||0); },0);
+      vol=" · "+(unit==="oz"?(+tot.toFixed(1)):tot)+" "+unit;
+    }
+    out += mini("var(--feed)", ICONS.feed, String(feeds.length), t("feeds")+vol);
+    // diapers — count, wet/dirty breakdown as the label (mixed counts in both)
+    var dp=ev.filter(function (x){ return x.type==="diaper"; });
+    var w=dp.filter(function (x){ return x.sub!=="dirty"; }).length, d=dp.filter(function (x){ return x.sub!=="wet"; }).length;
+    out += mini("var(--diaper)", ICONS.diaper, String(dp.length),
+      dp.length ? w+" "+t("wet").toLowerCase()+" · "+d+" "+t("dirty").toLowerCase() : t("diapers").toLowerCase());
+    // solids / meds only when they happened in the window
+    var solids=feeds.filter(function (x){ return x.sub==="solids"; });
+    if (solids.length) out += mini("var(--gold-text)", ICONS.solids, String(solids.length), t("solids").toLowerCase());
+    var meds=ev.filter(function (x){ return x.type==="meds"; });
+    if (meds.length) out += mini("var(--gold-text)", ICONS.meds, String(meds.length), t("meds").toLowerCase());
+    $("#l24sum").innerHTML=out;
   }
 
   // The vertical 24h ruler: the whole last-24h in proportion, so the day's
@@ -1413,11 +1456,7 @@
 
   function settingsSheet() {
     var me=cur();
-    var OPTS=[["sleep",t("sleep_today")],["diapers",t("diapers")],["feedVol",t("fed_today")],["lastDiaper",t("last_diaper")],["state",t("right_now")]];
     openSheet('<h3 id="sheetTitle">Settings</h3><p class="sub">Personal to '+me.name+'. Each caregiver has their own.</p>'+
-      '<h4>Quick stats (pick 3)</h4><div class="picker" id="tilePick">'+
-      OPTS.map(function (o){ return '<button data-tile="'+o[0]+'" aria-pressed="'+((db.pref.stats||[]).indexOf(o[0])>=0)+'">'+o[1]+'</button>'; }).join("")+'</div>'+
-      '<p class="hint">Formula parents: "Fed today". Night-duty: "Right now".</p>'+
       '<h4>Log solids</h4><button class="cta ghost" id="goSolids" style="margin-bottom:6px">'+t("solids")+'…</button>'+
       '<h4>Accessibility &amp; language</h4>'+
       '<div class="toggle"><div><div class="tl">'+t("simple_mode")+'</div><div class="td">Fewer things on screen — hides the stats.</div></div><button class="sw" id="swSimple" aria-pressed="'+me.simple+'" role="switch" aria-label="Simple mode"></button></div>'+
@@ -1425,12 +1464,6 @@
       '<div class="toggle"><div><div class="tl">Language</div><div class="td">Demo: English / Tagalog (placeholder — needs native review).</div></div>'+
         '<div class="unitrow" style="margin:0"><button id="langEn" aria-pressed="'+(me.lang!=="tl")+'">EN</button><button id="langTl" aria-pressed="'+(me.lang==="tl")+'">TL</button></div></div>'+
       '<h4>More (coming soon)</h4><div class="picker">'+["Pump","Growth","Export"].map(function (m){ return '<button data-soon="'+m+'">'+m+'</button>'; }).join("")+'</div>');
-    $("#tilePick").querySelectorAll("[data-tile]").forEach(function (b){ b.addEventListener("click", function (){
-      var k=b.dataset.tile, arr=(db.pref.stats||[]).slice(), i=arr.indexOf(k);
-      if (i>=0) arr.splice(i,1); else { arr.push(k); if (arr.length>3) arr.shift(); }
-      db.pref.stats=arr; persist();
-      $("#tilePick").querySelectorAll("[data-tile]").forEach(function (x){ x.setAttribute("aria-pressed", db.pref.stats.indexOf(x.dataset.tile)>=0?"true":"false"); });
-      render(); }); });
     $("#goSolids").addEventListener("click", function (){ solidsSheet(); });
     $("#swSimple").addEventListener("click", function (){ me.simple=!me.simple; persist(); this.setAttribute("aria-pressed", me.simple); render(); });
     $("#swAccess").addEventListener("click", function (){ me.access=!me.access; persist(); this.setAttribute("aria-pressed", me.access); render(); });
