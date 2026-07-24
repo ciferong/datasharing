@@ -181,29 +181,41 @@
     display: flex; justify-content: space-between; align-items: baseline; }
   .recent h2 .seeall { all: unset; cursor: pointer; font-size: 15px; font-weight: 700; color: var(--gold-text); padding: 4px; }
   .recent h2 .seeall:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 6px; }
-  .row { display: flex; align-items: center; gap: 13px; padding: 13px 0; min-height: 60px; }
-  .rowbtn { all: unset; cursor: pointer; display: flex; align-items: center; gap: 13px; flex: 1; min-width: 0; border-radius: 16px; min-height: 48px; }
+  /* ---- the day timeline: time · rail+node · text ----
+     Deliberately quiet. The ONLY colour is one soft category tint per node
+     (feed/sleep/diaper/other); everything else is neutral. No bright
+     caregiver badges (attribution shows as faint text, and only when it
+     wasn't you), no heavy shadows, no competing text colours. */
+  .row { display: flex; align-items: stretch; padding: 11px 0; min-height: 54px; }
+  .rowbtn { all: unset; cursor: pointer; display: grid; grid-template-columns: 44px 26px 1fr; column-gap: 12px;
+    align-items: stretch; flex: 1; min-width: 0; border-radius: 16px; }
   .rowbtn:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
-  .glyph { width: 44px; height: 44px; border-radius: 17px; flex: none; display: grid; place-items: center; position: relative; z-index: 1;
-    background: var(--s1); box-shadow: var(--lit), var(--shadow); }
-  .glyph svg { width: 22px; height: 22px; }
-  /* vertical timeline spine: a line down the icon column, behind the opaque
-     glyph circles, so it reads as a connected chronological timeline (the
-     icons are the nodes). Extends into the row padding on both sides to
-     bridge the gap to neighbouring rows into one continuous line; trimmed
-     at the first/last node so it doesn't dangle past the ends. Lives inside
-     .rowbtn so it stays glued to the glyph as the row swipes. */
-  .rowbtn .spine { position: absolute; left: 21px; top: -13px; bottom: -13px; width: 2px; z-index: 0;
-    background: color-mix(in srgb, var(--faint) 45%, transparent); }
-  .timeline-list .row:first-child .spine { top: 50%; }
-  .timeline-list .row:last-child .spine { bottom: 50%; }
-  .timeline-list .row:only-child .spine { display: none; }
-  .glyph .who { position: absolute; right: -5px; bottom: -5px; width: 19px; height: 19px; border-radius: 50%;
-    display: grid; place-items: center; font-size: 10px; font-weight: 800; color: #fff; box-shadow: 0 0 0 2px var(--bg); }
-  .row .t1 { font-size: 17px; font-weight: 650; }
-  .row .t2 { font-size: 14.5px; color: var(--faint); }
-  .row .when { font-size: 14.5px; color: var(--dim); text-align: right; white-space: nowrap; }
-  .row .when .ago { color: var(--faint); }
+
+  .tl-time { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; line-height: 1.12; }
+  .tl-time .hm { font-size: 14.5px; font-weight: 700; color: var(--dim); font-variant-numeric: tabular-nums; }
+  .tl-time .ap { font-size: 10px; font-weight: 700; color: var(--faint); letter-spacing: .04em; }
+
+  /* the rail + node. The line runs down the node column, behind the node
+     circles (icons = the timeline dots); it extends into the row padding to
+     join neighbours into one continuous rail, trimmed at the first/last. */
+  .tl-node { position: relative; display: flex; align-items: center; justify-content: center; }
+  .tl-node .spine { position: absolute; left: 50%; transform: translateX(-50%); top: -11px; bottom: -11px; width: 2px; z-index: 0;
+    background: color-mix(in srgb, var(--faint) 30%, transparent); }
+  .tl-node .node { position: relative; z-index: 1; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
+    box-shadow: 0 0 0 3px var(--bg); }
+  .tl-node .node svg { width: 16px; height: 16px; }
+  .tl-node .node.feed   { background: color-mix(in srgb, var(--feed) 15%, var(--bg));   color: var(--feed); }
+  .tl-node .node.sleep  { background: color-mix(in srgb, var(--sleep) 15%, var(--bg));  color: var(--sleep); }
+  .tl-node .node.diaper { background: color-mix(in srgb, var(--diaper) 15%, var(--bg)); color: var(--diaper); }
+  .tl-node .node.other  { background: color-mix(in srgb, var(--gold-text) 13%, var(--bg)); color: var(--gold-text); }
+  .timeline-list .row:first-child .tl-node .spine { top: 50%; }
+  .timeline-list .row:last-child  .tl-node .spine { bottom: 50%; }
+  .timeline-list .row:only-child  .tl-node .spine { display: none; }
+
+  .tl-body { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+  .tl-body .t1 { font-size: 15.5px; font-weight: 650; color: var(--text); }
+  .tl-body .t1 .dim { color: var(--faint); font-weight: 600; }
+  .tl-body .t2 { font-size: 13px; color: var(--faint); margin-top: 1px; }
   .empty { text-align: center; color: var(--faint); font-size: 16px; padding: 22px 0 6px; }
   .empty .big { font-size: 30px; margin-bottom: 8px; }
 
@@ -638,6 +650,8 @@
   function t(key) { var L=I18N[lang()]||I18N.en; return L[key]!=null?L[key]:(I18N.en[key]!=null?I18N.en[key]:key); }
 
   function fmtClock(ts) { return new Date(ts).toLocaleTimeString([], { hour:"numeric", minute:"2-digit" }); }
+  function fmtClockParts(ts) { var d=new Date(ts), h=d.getHours(), ap=h<12?"AM":"PM", h12=h%12||12, m=String(d.getMinutes()).padStart(2,"0"); return { hm:h12+":"+m, ap:ap }; }
+  function catClass(type) { return type==="feed"?"feed":type==="sleep"?"sleep":type==="diaper"?"diaper":"other"; }
   function agoStr(ts) { var s=Math.max(0,Math.floor((Date.now()-ts)/1000));
     if (s<60) return "now"; var m=Math.floor(s/60); if (m<60) return m+"m";
     var h=Math.floor(m/60), r=m%60; return r?h+"h "+r+"m":h+"h"; }
@@ -887,17 +901,21 @@
     if (!evs.length){ list.innerHTML='<div class="empty"><div class="big">🌙</div>'+t("nothing")+'<br>'+t("tapbelow")+'</div>'; return; }
     evs.forEach(function (ev){
       var who=careById(ev.by||"you");
+      var cp=fmtClockParts(ev.start);
+      var det=detailFor(ev);
+      // attribution only when it wasn't the current user — keeps the timeline
+      // quiet for solo use, surfaces "who" exactly when it matters (helper/partner)
+      var showWho = (ev.by||"you") !== db.cur;
       var row=document.createElement("div"); row.className="row rowwrap";
       row.innerHTML =
         '<div class="swipeunder" aria-hidden="true">'+
           '<span class="sw-edit">Edit</span><button class="sw-del" tabindex="-1" aria-hidden="true">Delete</button>'+
         '</div>'+
-        '<button class="rowbtn" aria-label="Edit '+labelFor(ev)+' at '+fmtClock(ev.start)+' — or swipe right to edit, swipe left to reveal delete">'+
-          '<span class="spine" aria-hidden="true"></span>'+
-          '<div class="glyph" style="color:'+colorFor(ev.type)+'">'+ICONS[ev.type]+'<span class="who" style="background:'+who.color+'">'+who.badge+'</span></div>'+
-          '<div style="flex:1;min-width:0"><div class="t1">'+labelFor(ev)+' <span style="color:var(--faint);font-weight:600">· '+detailFor(ev)+'</span></div>'+
-          '<div class="t2">'+who.name+'</div></div>'+
-          '<div class="when tnum">'+fmtClock(ev.start)+'<br><span class="ago">'+agoStr(ev.start)+' '+ (lang()==="tl"?"":"ago") +'</span></div>'+
+        '<button class="rowbtn" aria-label="'+labelFor(ev)+(det?" "+det:"")+' at '+fmtClock(ev.start)+(showWho?" by "+who.name:"")+' — swipe right to edit, left to reveal delete">'+
+          '<div class="tl-time"><span class="hm">'+cp.hm+'</span><span class="ap">'+cp.ap+'</span></div>'+
+          '<div class="tl-node"><span class="spine" aria-hidden="true"></span><span class="node '+catClass(ev.type)+'">'+ICONS[ev.type]+'</span></div>'+
+          '<div class="tl-body"><div class="t1">'+labelFor(ev)+(det?' <span class="dim">· '+det+'</span>':'')+'</div>'+
+            (showWho?'<div class="t2">'+who.name+'</div>':'')+'</div>'+
         '</button>';
       var btn=row.querySelector(".rowbtn");
       wireSwipe(row, btn, function (){ editSheet(ev.id); }, function (){ removeEvent(ev.id); });
