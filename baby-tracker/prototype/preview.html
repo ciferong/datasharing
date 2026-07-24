@@ -141,32 +141,32 @@
   .brow .bt2 { font-size: 12.5px; color: var(--faint); font-weight: 600; margin-top: 1px; }
   body.simple .babyart svg { width: 78px; height: 122px; }
 
-  /* ============ predict — two side-by-side "do this next" tiles ============
-     Both predictions get equal, large visual weight now — the manual row
-     below is explicitly secondary, deferring to whatever's predicted. */
-  .predict-group { display: flex; flex-direction: column; gap: 7px; }
-  .predict-label { font-size: 13px; font-weight: 700; letter-spacing: .02em; color: var(--faint); padding-left: 2px; }
-  .predict-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .predict-tiles.single { grid-template-columns: 1fr; }
-  /* compact: icon on the left, lead + message stacked beside it, so the row is
-     ~half the height of the old stacked card. Markup is unchanged — the three
-     spans are placed into a 2-col grid. */
-  .predict-tile { all: unset; cursor: pointer; box-sizing: border-box;
-    display: grid; grid-template-columns: auto 1fr; column-gap: 11px; row-gap: 0;
-    align-items: center; padding: 11px 13px; border-radius: 20px; min-height: 0;
-    background: linear-gradient(160deg, color-mix(in srgb, var(--gold) 13%, var(--s1)), var(--s1));
-    box-shadow: var(--lit), var(--shadow); transition: transform .32s cubic-bezier(.34,1.4,.64,1); }
-  .predict-tile.due { background: linear-gradient(160deg, color-mix(in srgb, var(--gold) 22%, var(--s1)), var(--s1)); }
-  .predict-tile:active { transform: scale(.96); }
-  .predict-tile:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
-  .predict-tile.pop { animation: predictpop .5s cubic-bezier(.34,1.56,.64,1); }
-  @keyframes predictpop { 0% { transform: scale(.9); } 55% { transform: scale(1.035); } 100% { transform: scale(1); } }
-  .predict-tile-ic { grid-row: 1 / 3; grid-column: 1; width: 38px; height: 38px; border-radius: 13px; display: grid; place-items: center;
-    background: color-mix(in srgb, currentColor 18%, var(--s1)); }
-  .predict-tile-ic svg { width: 20px; height: 20px; }
-  .predict-tile-lead { grid-column: 2; grid-row: 1; font-size: 11.5px; font-weight: 700; color: var(--dim); }
-  .predict-tile-msg { grid-column: 2; grid-row: 2; font-size: 15px; font-weight: 700; color: var(--text); line-height: 1.2; text-align: left; }
-  body.simple .predict-tile-msg { font-size: 16.5px; }
+  /* ============ Coming up — an INFORMATIONAL "what's likely next & when" card,
+     not a big log button. One quiet card; warms only when genuinely due; goes
+     vague ("timing's been irregular") when recent gaps are erratic so it never
+     states a false-precise number. Logging stays in the bottom action row; the
+     small Log pill is just a convenience (and opens the amount sheet for
+     bottles rather than silently logging the "usual"). */
+  .upnext { display: flex; flex-direction: column; gap: 7px; }
+  .upnext-label { font-size: 13px; font-weight: 700; letter-spacing: .02em; color: var(--faint); padding-left: 2px; }
+  .upnext-card { display: flex; align-items: center; gap: 12px; padding: 11px 11px 11px 13px; border-radius: 18px;
+    background: var(--s1); box-shadow: var(--lit), var(--shadow); }
+  .upnext-card.due { background: linear-gradient(160deg, color-mix(in srgb, var(--gold) 14%, var(--s1)), var(--s1)); }
+  .up-ic { flex: none; width: 40px; height: 40px; border-radius: 13px; display: grid; place-items: center;
+    background: color-mix(in srgb, currentColor 15%, var(--s1)); }
+  .up-ic svg { width: 21px; height: 21px; }
+  .up-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.18; }
+  .up-main { font-size: 16px; font-weight: 800; color: var(--text); letter-spacing: -.01em; }
+  .up-sub { font-size: 13px; font-weight: 600; color: var(--dim); }
+  .upnext-card.due .up-sub { color: var(--gold-text); }
+  .up-log { all: unset; cursor: pointer; flex: none; display: inline-flex; align-items: center; gap: 5px;
+    padding: 8px 13px; border-radius: 999px; font-size: 13px; font-weight: 800; color: var(--gold-text);
+    background: color-mix(in srgb, var(--gold) 12%, var(--s1)); box-shadow: var(--lit);
+    transition: transform .2s cubic-bezier(.34,1.4,.64,1); }
+  .up-log svg { width: 15px; height: 15px; }
+  .up-log:active { transform: scale(.93); }
+  .up-log:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  body.simple .up-log { padding: 10px 15px; }
 
   /* ============ Last 24 Hours — vertical proportional 24h ruler beside the
      detail list (PiyoLog-style "ruler + log"). The ruler shows the whole day's
@@ -551,21 +551,17 @@
     </div>
   </section>
 
-  <div class="predict-group" id="predictGroup" hidden>
-    <div class="predict-label" id="predictLabel">Predicted for you</div>
-    <div class="predict-tiles" id="predictTiles">
-      <button class="predict-tile" id="predictTile0" hidden>
-        <span class="predict-tile-ic"></span>
-        <span class="predict-tile-lead"></span>
-        <span class="predict-tile-msg"></span>
-      </button>
-      <button class="predict-tile" id="predictTile1" hidden>
-        <span class="predict-tile-ic"></span>
-        <span class="predict-tile-lead"></span>
-        <span class="predict-tile-msg"></span>
+  <section class="upnext" id="upnext" hidden aria-live="polite">
+    <div class="upnext-label" id="upLabel">Coming up</div>
+    <div class="upnext-card" id="upCard">
+      <span class="up-ic" id="upIc"></span>
+      <span class="up-txt"><span class="up-main" id="upMain"></span><span class="up-sub" id="upSub"></span></span>
+      <button class="up-log" id="upLog" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        <span id="upLogLbl">Log</span>
       </button>
     </div>
-  </div>
+  </section>
 
 
   <section class="recent">
@@ -659,7 +655,8 @@
       meds_dose_ph:"Dose (e.g. 2.5ml)", more_sub:"Less-frequent logs.", coming_soon:"Coming soon",
       day_today:"Today", day_yesterday:"Yesterday",
       hero_fed:"Fed", hero_changed:"Changed", by:"by", no_feed:"Not fed yet", no_change:"No changes yet",
-      last_nap:"last nap", feeds:"feeds" },
+      last_nap:"last nap", feeds:"feeds",
+      coming_up:"Coming up", log_verb:"Log", up_due:"likely due now", up_soon:"likely soon", up_in:"likely in", up_irregular:"timing's been irregular" },
     tl: { g_morning:"Magandang umaga", g_afternoon:"Magandang hapon", g_evening:"Magandang gabi", g_night:"Gabing-gabi na",
       nurse:"Pasuso", bottle:"Bote", sleep:"Tulog", diaper:"Lampin", wake:"Gising",
       left:"Kaliwa", right:"Kanan", wet:"Basa", dirty:"Dumi", mixed:"Basa at dumi", solids:"Pagkain", nursing:"Pasuso",
@@ -676,7 +673,8 @@
       meds_dose_ph:"Dosis (hal. 2.5ml)", more_sub:"Bihirang i-record.", coming_soon:"Paparating na",
       day_today:"Ngayong araw", day_yesterday:"Kahapon",
       hero_fed:"Pinakain", hero_changed:"Pinalitan", by:"ni", no_feed:"Wala pang pakain", no_change:"Wala pang palit",
-      last_nap:"huling idlip", feeds:"pakain" }
+      last_nap:"huling idlip", feeds:"pakain",
+      coming_up:"Susunod", log_verb:"I-log", up_due:"malamang ngayon na", up_soon:"malapit na", up_in:"malamang sa", up_irregular:"pabago-bago ang oras" }
   };
 
   /* `simple` (fewer things on screen) and `access` (larger text & controls) are
@@ -847,7 +845,6 @@
     $("#nurseLbl").textContent=t("nurse"); $("#bottleLbl").textContent=t("bottle");
     $("#diaperLbl").textContent=t("diaper");
     $("#solidsLbl").textContent=t("solids"); $("#bathLbl").textContent=t("bath"); $("#moreLbl").textContent=t("more");
-    $("#predictLabel").textContent=t("predicted_for_you");
     $("#nurseSub").textContent="tap = "+(nextSide()==="R"?t("right"):t("left"));
     $("#bottleSub").textContent = db.pref.lastAmount? "tap = "+db.pref.lastAmount+" "+db.pref.unit : "";
     $("#sleepSub").textContent = db.timer&&db.timer.type==="sleep" ? "" : t("tap_start");
@@ -930,19 +927,16 @@
       for (var i=1;i<recent.length;i++) gaps.push(recent[i].start-recent[i-1].start);
       var avg=gaps.reduce(function (a,b){return a+b;},0)/gaps.length;
       if (avg<=0) return;
+      // coefficient of variation of the recent gaps — how steady the rhythm is.
+      // High cv = erratic (cluster feeding / growth spurt) → don't state a number.
+      var vari=gaps.reduce(function (a,g){ return a+(g-avg)*(g-avg); },0)/gaps.length;
+      var cv=Math.sqrt(vari)/avg;
       var last=evs[evs.length-1], elapsed=now-last.start, ratio=elapsed/avg;
-      cands.push({ type:type, evs:evs, avg:avg, elapsed:elapsed, ratio:ratio });
+      cands.push({ type:type, evs:evs, avg:avg, elapsed:elapsed, ratio:ratio, cv:cv });
     });
+    // sorted most-due first; the "Coming up" card uses only the top one.
     cands.sort(function (a,b){ return b.ratio-a.ratio; });
-    // Always surface the top 2 most-due types (no ratio threshold), so the
-    // section is consistently two side-by-side tiles rather than sometimes
-    // one or none. Honesty is preserved by the per-tile timing label
-    // (renderPredict) — a not-yet-due prediction reads "in ~40m", not a
-    // false "Soon". Feed+Sleep+Diaper all have seeded history, so in normal
-    // use this is always 2; only a brand-new baby with <2 logged types
-    // could yield fewer, and that renders as one full-width tile (never a
-    // blank half).
-    return cands.slice(0,2);
+    return cands;
   }
   function predictedFeedSub(evs) {
     var subs=evs.slice(-5).map(function (e){ return e.sub; }).filter(function (s){ return s==="nursing"||s==="bottle"; });
@@ -967,9 +961,12 @@
         var lastBottle=p.evs.filter(function (e){ return e.sub==="bottle"; }).pop();
         var amount=(lastBottle&&lastBottle.amount)||db.pref.lastAmount||(db.pref.unit==="oz"?4:120);
         var unit=(lastBottle&&lastBottle.unit)||db.pref.unit||"ml";
-        label=t("bottle")+" · "+amount+" "+unit; badgeId="actBottle";
-        actFn=function (){ logBottle(amount, unit, Date.now()); };
+        label=t("bottle")+" · ~"+amount+" "+unit; badgeId="actBottle";
+        // confirm-not-commit: open the amount sheet (pre-filled), never silently
+        // log the "usual" — that would write a fabricated number into the record.
+        actFn=function (){ bottleSheet(); };
       } else {
+        icon=ICONS.nurse; // breast icon for a nursing prediction (not the bottle)
         var side=nextSide();
         label=t("nursing")+" · "+(side==="R"?t("right"):t("left")); badgeId="actNurse";
         actFn=function (){ startTimer("feed", side); };
@@ -978,50 +975,32 @@
     return { icon:icon, color:color, label:label, actFn:actFn, badgeId:badgeId, cycleWord:cycleWord };
   }
 
-  /* Renders the (up to 2) predicted tiles AND, in the same pass, hides
-     whichever of the 4 core manual buttons are now covered by a tile —
-     the row defers to the prediction instead of duplicating it. Solids/
-     Bath/More are never touched here; they have no predictable cycle, so
-     they stay as always-available constants in the row. */
-  var lastPredictMsgs=[null,null];
+  /* "Coming up" — INFO first. One quiet card: the single most-due item + a
+     hedged sense of when. It does NOT hijack the bottom action row anymore
+     (all four core log buttons stay put); the small Log pill is a convenience,
+     and for bottles it opens the amount sheet instead of committing a guess. */
   function renderPredict() {
-    var group=$("#predictGroup"), tiles=$("#predictTiles"), t0=$("#predictTile0"), t1=$("#predictTile1");
     ["actNurse","actBottle","actSleep","actDiaper"].forEach(function (id){ $("#"+id).hidden=false; });
-    var list=computePredictions();
-    if (!list.length) {
-      group.hidden=true;
-      t0.hidden=true; t0.onclick=null; t1.hidden=true; t1.onclick=null;
-      lastPredictMsgs=[null,null];
-      return;
-    }
+    var group=$("#upnext");
+    $("#upLabel").textContent=t("coming_up");
+    var p=computePredictions()[0];
+    if (!p) { group.hidden=true; return; }
     group.hidden=false;
-    tiles.classList.toggle("single", list.length<2);
-    [t0, t1].forEach(function (tile, i) {
-      var p=list[i];
-      if (!p) { tile.hidden=true; tile.onclick=null; lastPredictMsgs[i]=null; return; }
-      var a=buildPredictAction(p);
-      // Honest timing label now that tiles always show (even not-yet-due):
-      // overdue -> "Ready"; otherwise the real estimated wait, e.g. "in ~40m".
-      var msLeft = p.avg - p.elapsed;
-      var due = msLeft <= 0;
-      var lead = due ? "Ready" : "in ~"+durShort(msLeft);
-      tile.querySelector(".predict-tile-ic").innerHTML=a.icon;
-      tile.querySelector(".predict-tile-ic").style.color=a.color;
-      // urgency shows in colour: an overdue ("Ready") tile warms up and its lead
-      // takes the accent; a not-yet-due tile stays quiet. So the "do this next"
-      // answer is seen, not just read.
-      tile.classList.toggle("due", due);
-      var leadEl = tile.querySelector(".predict-tile-lead");
-      leadEl.textContent = lead;
-      leadEl.style.color = due ? "var(--gold-text)" : "var(--dim)";
-      tile.querySelector(".predict-tile-msg").textContent = a.label;
-      tile.setAttribute("aria-label", "Log "+a.label+(msLeft<=0?" now":" (due in about "+durShort(msLeft)+")")+" — predicted");
-      if (tile.hidden || lastPredictMsgs[i]!==a.label) { tile.classList.remove("pop"); void tile.offsetWidth; tile.classList.add("pop"); }
-      tile.hidden=false;
-      tile.onclick=function (){ buzz(16); a.actFn(); };
-      if (a.badgeId) $("#"+a.badgeId).hidden=true; // this action moved up into a tile — don't show it twice
-      lastPredictMsgs[i]=a.label;
-    });
+    var a=buildPredictAction(p);
+    var msLeft=p.avg-p.elapsed, due=msLeft<=0, erratic=(p.cv!=null && p.cv>0.55);
+    // hedge when the rhythm is erratic — no false-precise number at exactly the
+    // moment (cluster feeds / growth spurts) the parent is most frazzled.
+    var sub = erratic ? t("up_irregular")
+      : due ? t("up_due")
+      : msLeft < 25*60000 ? t("up_soon")
+      : t("up_in")+" ~"+durShort(msLeft);
+    $("#upIc").innerHTML=a.icon; $("#upIc").style.color=a.color;
+    $("#upMain").textContent=a.label;
+    $("#upSub").textContent=sub;
+    $("#upCard").classList.toggle("due", due && !erratic);
+    $("#upLogLbl").textContent=t("log_verb");
+    $("#upLog").setAttribute("aria-label", t("log_verb")+" "+a.label);
+    $("#upLog").onclick=function (e){ e.stopPropagation(); buzz(16); a.actFn(); };
   }
 
   // Rolling last-24h window (matches the ruler + list), NOT the calendar day —
