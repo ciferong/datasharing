@@ -121,6 +121,24 @@
   .hero .next b { color: var(--gold-text); font-weight: 700; }
   .hero .why { font-size: 14px; color: var(--faint); }
 
+  /* ============ baby-hero — a cartoon baby with last-feed at the mouth and
+     last-diaper at the legs, each with who did it. The two rows are spread to
+     the baby's head/foot height so they read as "coming from" those spots. */
+  .babyhero { display: flex; align-items: stretch; gap: 15px; margin: 2px 0 20px; }
+  .babyart { flex: 0 0 auto; display: flex; align-items: center; }
+  .babyart svg { width: 82px; height: 120px; display: block; }
+  .babyrows { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 7px 0; }
+  .brow { display: flex; align-items: center; gap: 12px; }
+  .brow .bic { flex: none; width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center;
+    background: color-mix(in srgb, currentColor 15%, var(--s1)); box-shadow: var(--lit); }
+  .brow.mouth .bic { color: var(--feed); }
+  .brow.legs .bic { color: var(--diaper); }
+  .brow .bic svg { width: 22px; height: 22px; }
+  .brow .btxt { min-width: 0; display: flex; flex-direction: column; }
+  .brow .bt1 { font-size: 17px; font-weight: 800; color: var(--text); line-height: 1.2; letter-spacing: -.01em; }
+  .brow .bt2 { font-size: 13px; color: var(--faint); font-weight: 600; margin-top: 1px; }
+  body.simple .babyart svg { width: 74px; height: 108px; }
+
   /* ============ predict — two side-by-side "do this next" tiles ============
      Both predictions get equal, large visual weight now — the manual row
      below is explicitly secondary, deferring to whatever's predicted. */
@@ -483,9 +501,47 @@
     <button id="sbBack">Switch back</button>
   </div>
 
-  <section class="hero" aria-live="polite">
-    <span class="lead" id="heroLead">Last fed</span>
-    <span class="big disp tnum" id="heroBig">—</span>
+  <section class="babyhero" aria-live="polite">
+    <div class="babyart" aria-hidden="true">
+      <svg viewBox="0 0 90 132" fill="none">
+        <!-- feet peeking under the onesie -->
+        <ellipse cx="37" cy="115" rx="7.5" ry="6" fill="#f3c4a0"/>
+        <ellipse cx="53" cy="115" rx="7.5" ry="6" fill="#f3c4a0"/>
+        <!-- arms -->
+        <path d="M26 66 q-10 3 -11 15" stroke="#f3c4a0" stroke-width="9.5" stroke-linecap="round"/>
+        <path d="M64 66 q10 3 11 15" stroke="#f3c4a0" stroke-width="9.5" stroke-linecap="round"/>
+        <!-- onesie body -->
+        <rect x="24" y="49" width="42" height="62" rx="21" fill="var(--gold)"/>
+        <path d="M45 52 v52" stroke="var(--on-accent)" stroke-width="2" stroke-linecap="round" opacity=".28"/>
+        <circle cx="45" cy="66" r="2.2" fill="var(--on-accent)" opacity=".4"/>
+        <circle cx="45" cy="80" r="2.2" fill="var(--on-accent)" opacity=".4"/>
+        <!-- ears -->
+        <circle cx="23" cy="32" r="5.5" fill="#f3c4a0"/>
+        <circle cx="67" cy="32" r="5.5" fill="#f3c4a0"/>
+        <!-- head -->
+        <circle cx="45" cy="31" r="23" fill="#f3c4a0"/>
+        <!-- hair curl -->
+        <path d="M43 9 q9 -3 9 6 q0 4 -4 4.5" fill="none" stroke="#7a5138" stroke-width="3.6" stroke-linecap="round"/>
+        <!-- closed happy eyes -->
+        <path d="M33 30 q3.6 3.4 7.2 0" fill="none" stroke="#5a3b28" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M49.8 30 q3.6 3.4 7.2 0" fill="none" stroke="#5a3b28" stroke-width="2.6" stroke-linecap="round"/>
+        <!-- rosy cheeks -->
+        <circle cx="31" cy="38" r="4" fill="#ef9e7e" opacity=".7"/>
+        <circle cx="59" cy="38" r="4" fill="#ef9e7e" opacity=".7"/>
+        <!-- smile -->
+        <path d="M40 41 q5 4.5 10 0" fill="none" stroke="#5a3b28" stroke-width="2.4" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="babyrows">
+      <div class="brow mouth">
+        <span class="bic" id="fedIc"></span>
+        <span class="btxt"><span class="bt1" id="fedT1">—</span><span class="bt2" id="fedT2"></span></span>
+      </div>
+      <div class="brow legs">
+        <span class="bic" id="diaIc"></span>
+        <span class="btxt"><span class="bt1" id="diaT1">—</span><span class="bt2" id="diaT2"></span></span>
+      </div>
+    </div>
   </section>
 
   <div class="predict-group" id="predictGroup" hidden>
@@ -591,7 +647,8 @@
       bath:"Bath", meds:"Meds", temp:"Temp", more:"More", predicted_for_you:"Predicted for you",
       log_meds:"Log meds", log_temp:"Log temperature", meds_name_ph:"What medicine? (e.g. Tylenol)",
       meds_dose_ph:"Dose (e.g. 2.5ml)", more_sub:"Less-frequent logs.", coming_soon:"Coming soon",
-      day_today:"Today", day_yesterday:"Yesterday" },
+      day_today:"Today", day_yesterday:"Yesterday",
+      hero_fed:"Fed", hero_changed:"Changed", by:"by", no_feed:"Not fed yet", no_change:"No changes yet" },
     tl: { g_morning:"Magandang umaga", g_afternoon:"Magandang hapon", g_evening:"Magandang gabi", g_night:"Gabing-gabi na",
       nurse:"Pasuso", bottle:"Bote", sleep:"Tulog", diaper:"Lampin", wake:"Gising",
       left:"Kaliwa", right:"Kanan", wet:"Basa", dirty:"Dumi", mixed:"Basa at dumi", solids:"Pagkain", nursing:"Pasuso",
@@ -606,7 +663,8 @@
       bath:"Ligo", meds:"Gamot", temp:"Lagnat", more:"Iba pa", predicted_for_you:"Hula para sa iyo",
       log_meds:"I-record ang gamot", log_temp:"I-record ang temperatura", meds_name_ph:"Anong gamot? (hal. Tylenol)",
       meds_dose_ph:"Dosis (hal. 2.5ml)", more_sub:"Bihirang i-record.", coming_soon:"Paparating na",
-      day_today:"Ngayong araw", day_yesterday:"Kahapon" }
+      day_today:"Ngayong araw", day_yesterday:"Kahapon",
+      hero_fed:"Pinakain", hero_changed:"Pinalitan", by:"ni", no_feed:"Wala pang pakain", no_change:"Wala pang palit" }
   };
 
   /* `simple` (fewer things on screen) and `access` (larger text & controls) are
@@ -701,7 +759,8 @@
     solids:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a8 8 0 0 0 16 0"/><path d="M4 11h16"/><path d="M17 11V4c-1.6 0-2.5 1.6-2.5 3.5S15.4 11 17 11z"/></svg>',
     bath:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16v3a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z"/><path d="M7 12V6a2 2 0 0 1 4 0"/></svg>',
     meds:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="8" width="19" height="8" rx="4"/><line x1="12" y1="8" x2="12" y2="16"/></svg>',
-    temp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0z"/><path d="M12 8v5"/></svg>'
+    temp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0z"/><path d="M12 8v5"/></svg>',
+    nurse:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10c0-2.2 2-4 5-4h6c3 0 5 1.8 5 4 0 4.2-4 7.5-8 7.5S4 14.2 4 10z"/><circle cx="12" cy="10.5" r="1.7"/></svg>'
   };
   function colorFor(x) {
     if (x==="feed") return "var(--feed)";
@@ -796,18 +855,26 @@
     } else sb.classList.remove("on");
   }
 
+  // The baby-hero: last feed at the mouth, last diaper at the legs, each with
+  // who did it. The icon on the fed row reflects how baby was fed last —
+  // breast / bottle / solids. (A running feed/sleep still shows in the fixed
+  // timer banner, so the hero always answers "when did each last happen".)
+  function fedIcon(sub) { return sub==="bottle" ? ICONS.feed : sub==="solids" ? ICONS.solids : ICONS.nurse; }
+  function latestOf(type) {
+    return db.events.reduce(function (best, x){ return x.type===type && (!best || x.start>best.start) ? x : best; }, null);
+  }
   function renderHero() {
-    var big=$("#heroBig"), lead=$("#heroLead");
-    $(".hero").classList.toggle("live", !!db.timer);
-    if (db.timer) {
-      lead.textContent = db.timer.type==="sleep" ? t("asleep") : t("nursing")+" · "+(db.timer.side==="R"?t("right"):t("left"));
-      big.innerHTML = '<b>'+dur(Date.now()-db.timer.start)+'</b>';
-      return;
-    }
-    var feeds=db.events.filter(function (x){ return x.type==="feed"; });
-    var lf=feeds.length?feeds[feeds.length-1]:null;
-    lead.textContent = t("last_fed");
-    big.innerHTML = lf ? '<b>'+agoStr(lf.start)+'</b> '+t("ago") : "—";
+    var lf=latestOf("feed"), ld=latestOf("diaper");
+    if (lf) {
+      $("#fedIc").innerHTML = fedIcon(lf.sub);
+      $("#fedT1").textContent = t("hero_fed")+" "+agoStr(lf.start)+" "+t("ago");
+      $("#fedT2").textContent = t("by")+" "+careById(lf.by||"you").name;
+    } else { $("#fedIc").innerHTML=ICONS.nurse; $("#fedT1").textContent=t("no_feed"); $("#fedT2").textContent=""; }
+    if (ld) {
+      $("#diaIc").innerHTML = ICONS.diaper;
+      $("#diaT1").textContent = t("hero_changed")+" "+agoStr(ld.start)+" "+t("ago");
+      $("#diaT2").textContent = t("by")+" "+careById(ld.by||"you").name;
+    } else { $("#diaIc").innerHTML=ICONS.diaper; $("#diaT1").textContent=t("no_change"); $("#diaT2").textContent=""; }
   }
 
   /* ---------- predicted next action(s) ----------
