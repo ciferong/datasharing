@@ -771,7 +771,15 @@
       cands.push({ type:type, evs:evs, avg:avg, elapsed:elapsed, ratio:ratio });
     });
     cands.sort(function (a,b){ return b.ratio-a.ratio; });
-    return cands.filter(function (c){ return c.ratio>=0.55; }).slice(0,2);
+    // Always surface the top 2 most-due types (no ratio threshold), so the
+    // section is consistently two side-by-side tiles rather than sometimes
+    // one or none. Honesty is preserved by the per-tile timing label
+    // (renderPredict) — a not-yet-due prediction reads "in ~40m", not a
+    // false "Soon". Feed+Sleep+Diaper all have seeded history, so in normal
+    // use this is always 2; only a brand-new baby with <2 logged types
+    // could yield fewer, and that renders as one full-width tile (never a
+    // blank half).
+    return cands.slice(0,2);
   }
   function predictedFeedSub(evs) {
     var subs=evs.slice(-5).map(function (e){ return e.sub; }).filter(function (s){ return s==="nursing"||s==="bottle"; });
@@ -829,11 +837,15 @@
       var p=list[i];
       if (!p) { tile.hidden=true; tile.onclick=null; lastPredictMsgs[i]=null; return; }
       var a=buildPredictAction(p);
+      // Honest timing label now that tiles always show (even not-yet-due):
+      // overdue -> "Ready"; otherwise the real estimated wait, e.g. "in ~40m".
+      var msLeft = p.avg - p.elapsed;
+      var lead = msLeft <= 0 ? "Ready" : "in ~"+durShort(msLeft);
       tile.querySelector(".predict-tile-ic").innerHTML=a.icon;
       tile.querySelector(".predict-tile-ic").style.color=a.color;
-      tile.querySelector(".predict-tile-lead").textContent = p.ratio>=1 ? "Ready" : "Soon";
+      tile.querySelector(".predict-tile-lead").textContent = lead;
       tile.querySelector(".predict-tile-msg").textContent = a.label;
-      tile.setAttribute("aria-label", "Log "+a.label+" now — predicted next action");
+      tile.setAttribute("aria-label", "Log "+a.label+(msLeft<=0?" now":" (due in about "+durShort(msLeft)+")")+" — predicted");
       if (tile.hidden || lastPredictMsgs[i]!==a.label) { tile.classList.remove("pop"); void tile.offsetWidth; tile.classList.add("pop"); }
       tile.hidden=false;
       tile.onclick=function (){ buzz(16); a.actFn(); };
