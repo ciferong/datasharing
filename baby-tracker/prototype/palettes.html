@@ -1,0 +1,247 @@
+<title>Lull — Palette Lab</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<style>
+  * { box-sizing: border-box; }
+  .lab { font-family: ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
+    min-height: 100dvh; padding: 20px 16px 40px; background: #e8e7ee; color: #1b1b22;
+    display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  @media (prefers-color-scheme: dark) { .lab { background: #17171c; color: #f0eff5; } }
+  :root[data-theme="dark"] .lab { background: #17171c; color: #f0eff5; }
+  :root[data-theme="light"] .lab { background: #e8e7ee; color: #1b1b22; }
+
+  .lab h1 { font-size: 20px; font-weight: 800; margin: 4px 0 0; letter-spacing: -.01em; }
+  .lab .sub { font-size: 13.5px; opacity: .72; max-width: 480px; text-align: center; margin: -6px 0 2px; line-height: 1.45; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 520px; }
+  .chip { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 9px;
+    padding: 9px 13px 9px 10px; border-radius: 999px; font-size: 14px; font-weight: 700;
+    background: rgba(130,130,150,.13); border: 2px solid transparent; transition: transform .15s, border-color .15s, background .15s; }
+  .chip:hover { transform: translateY(-1px); }
+  .chip[aria-pressed="true"] { border-color: currentColor; background: rgba(130,130,150,.2); }
+  .chip .sw { display: inline-flex; border-radius: 6px; overflow: hidden; box-shadow: 0 0 0 1px rgba(0,0,0,.12); }
+  .chip .sw i { width: 11px; height: 20px; display: block; }
+  .chip:focus-visible { outline: 2px solid #7b6cff; outline-offset: 3px; }
+
+  .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
+  .tbtn { all: unset; cursor: pointer; font-size: 13.5px; font-weight: 700; padding: 8px 14px; border-radius: 999px;
+    background: rgba(130,130,150,.16); }
+  .tbtn:focus-visible { outline: 2px solid #7b6cff; outline-offset: 2px; }
+
+  .blurb { max-width: 480px; text-align: center; font-size: 14px; line-height: 1.5; min-height: 42px; }
+  .blurb b { font-weight: 800; }
+
+  /* ============ the phone mock — all colour comes from palette vars on .stage ============ */
+  .stage { --bg:#fff; --bg-glow:#fff; --s0:#fff; --s1:#fff; --s2:#fff; --text:#111; --dim:#555; --faint:#777;
+    --accent:#e60; --accent-strong:#c40; --on-accent:#fff; --feed:#c30; --sleep:#63c; --diaper:#088; --danger:#c22; }
+  .phone { width: 360px; max-width: 100%; border-radius: 38px; overflow: hidden;
+    background: var(--bg); background-image: radial-gradient(120% 80% at 80% -10%, var(--bg-glow), transparent 60%);
+    box-shadow: 0 24px 70px rgba(20,16,40,.34); border: 1px solid rgba(255,255,255,.12);
+    padding: 22px 18px 16px; color: var(--text); }
+
+  .hdr { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 18px; }
+  .hi { font-size: 14px; color: var(--faint); font-weight: 600; }
+  .nm { font-size: 24px; font-weight: 800; letter-spacing: -.02em; }
+  .nm .age { font-size: 14px; color: var(--faint); font-weight: 700; margin-left: 6px; }
+  .who { display: inline-flex; align-items: center; gap: 7px; background: var(--s1); padding: 8px 13px 8px 8px;
+    border-radius: 999px; box-shadow: 0 6px 18px rgba(40,30,60,.10); font-weight: 700; font-size: 14px; }
+  .who .av { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--on-accent);
+    display: grid; place-items: center; font-size: 12px; font-weight: 800; }
+
+  .lead { font-size: 14px; color: var(--faint); font-weight: 600; }
+  .hero { font-size: 40px; font-weight: 800; letter-spacing: -.02em; line-height: 1.08; margin: 2px 0 20px; }
+  .hero b { color: var(--accent-strong); }
+
+  .plabel { font-size: 12.5px; font-weight: 800; color: var(--faint); letter-spacing: .02em; margin-bottom: 9px; }
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+  .tile { border-radius: 22px; padding: 14px; min-height: 104px; display: flex; flex-direction: column; gap: 8px;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 13%, var(--s1)), var(--s1));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 8px 22px rgba(40,30,60,.10); }
+  :root[data-theme="dark"] .tile, .stage.dk .tile { box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 10px 26px rgba(0,0,0,.4); }
+  .tile.due { background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 24%, var(--s1)), var(--s1)); }
+  .tile .ic { width: 38px; height: 38px; border-radius: 13px; display: grid; place-items: center;
+    background: color-mix(in srgb, currentColor 17%, var(--s1)); }
+  .tile .ic svg { width: 20px; height: 20px; }
+  .tile .lead2 { font-size: 12px; font-weight: 800; color: var(--dim); }
+  .tile.due .lead2 { color: var(--accent-strong); }
+  .tile .msg { font-size: 16px; font-weight: 800; color: var(--text); }
+
+  .strip { display: flex; gap: 14px; margin-bottom: 20px; }
+  .stat { flex: 1; }
+  .stat .k { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: var(--dim); }
+  .stat .k i { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); }
+  .stat .v { font-size: 21px; font-weight: 800; letter-spacing: -.01em; margin-top: 2px; }
+  .stat .s { font-size: 11.5px; color: var(--faint); }
+
+  .rtitle { font-size: 13px; font-weight: 800; color: var(--dim); margin-bottom: 6px; }
+  .row { display: grid; grid-template-columns: 46px 26px 1fr; column-gap: 12px; align-items: center; padding: 9px 0; }
+  .tm { text-align: right; line-height: 1.1; }
+  .tm .hm { font-size: 14px; font-weight: 800; color: var(--dim); }
+  .tm .ap { font-size: 9.5px; font-weight: 800; color: var(--faint); }
+  .nd { position: relative; display: grid; place-items: center; }
+  .nd .sp { position: absolute; left: 50%; transform: translateX(-50%); top: -11px; bottom: -11px; width: 2px;
+    background: color-mix(in srgb, var(--faint) 30%, transparent); }
+  .row:first-of-type .nd .sp { top: 50%; }
+  .row:last-of-type .nd .sp { bottom: 50%; }
+  .nd .dot { position: relative; z-index: 1; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
+    box-shadow: 0 0 0 3px var(--bg); }
+  .nd .dot svg { width: 15px; height: 15px; }
+  .nd .dot.feed { background: color-mix(in srgb, var(--feed) 15%, var(--bg)); color: var(--feed); }
+  .nd .dot.sleep { background: color-mix(in srgb, var(--sleep) 15%, var(--bg)); color: var(--sleep); }
+  .nd .dot.diaper { background: color-mix(in srgb, var(--diaper) 15%, var(--bg)); color: var(--diaper); }
+  .bd .t1 { font-size: 15px; font-weight: 700; color: var(--text); }
+  .bd .t1 .d { color: var(--faint); font-weight: 600; }
+  .bd .t2 { font-size: 12.5px; color: var(--faint); }
+
+  .divider { display: flex; align-items: center; gap: 11px; padding: 9px 2px; }
+  .divider .ln { flex: 1; height: 1px; background: color-mix(in srgb, var(--faint) 26%, transparent); }
+  .divider .lb { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+
+  .acts { display: flex; gap: 9px; margin-top: 16px; }
+  .act { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 11px 4px 9px;
+    border-radius: 20px; background: var(--s1); box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 6px 16px rgba(40,30,60,.09);
+    font-size: 11.5px; font-weight: 700; color: var(--text); }
+  :root[data-theme="dark"] .act, .stage.dk .act { box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 8px 20px rgba(0,0,0,.4); }
+  .act svg { width: 21px; height: 21px; color: var(--dim); }
+
+  .foot { font-size: 12px; opacity: .6; text-align: center; max-width: 480px; line-height: 1.5; }
+</style>
+
+<div class="lab">
+  <h1>Lull — Palette Lab</h1>
+  <p class="sub">Five colour directions on the same screen. Tap a palette; flip light/dark. Every colour here is WCAG-verified for contrast in both modes.</p>
+
+  <div class="chips" id="chips"></div>
+  <div class="toolbar">
+    <button class="tbtn" id="themeBtn">◐ Switch to dark</button>
+  </div>
+  <div class="blurb" id="blurb"></div>
+
+  <div class="stage" id="stage">
+    <div class="phone">
+      <div class="hdr">
+        <div>
+          <div class="hi">Good afternoon</div>
+          <div class="nm">Baby<span class="age">· 12w</span></div>
+        </div>
+        <div class="who"><span class="av">Y</span>You</div>
+      </div>
+
+      <div class="lead">Last fed</div>
+      <div class="hero"><b>1h 30m</b> ago</div>
+
+      <div class="plabel">PREDICTED FOR YOU</div>
+      <div class="tiles">
+        <div class="tile due">
+          <div class="ic" style="color:var(--feed)" id="ic-feed"></div>
+          <div class="lead2">Ready</div>
+          <div class="msg">Nursing · Left</div>
+        </div>
+        <div class="tile">
+          <div class="ic" style="color:var(--sleep)" id="ic-sleep"></div>
+          <div class="lead2">in ~2h</div>
+          <div class="msg">Sleep</div>
+        </div>
+      </div>
+
+      <div class="strip">
+        <div class="stat"><div class="k"><i></i>Sleep today</div><div class="v">7h 48m</div></div>
+        <div class="stat"><div class="k"><i></i>Diapers</div><div class="v">3</div><div class="s">2 wet · 2 dirty</div></div>
+        <div class="stat"><div class="k"><i></i>Fed today</div><div class="v">120 ml</div></div>
+      </div>
+
+      <div class="rtitle">Today's rhythm</div>
+      <div id="tl"></div>
+    </div>
+  </div>
+
+  <p class="foot">This is a preview harness, not the live app — it exists only to compare colour directions. Whichever you pick gets wired fully into the prototype (both themes, all sheets).</p>
+</div>
+
+<script>
+  var P = {
+   Dawn: { blurb: "<b>Warm peach-into-lilac.</b> Cozy, friendly, un-clinical — the current direction, refined. Nobody in baby-tech owns peach + lilac, so it's already distinctive. Lowest-risk.",
+    light:{bg:"#f6eef9",bgGlow:"#ffe9d6",s0:"#f5eefb",s1:"#fffefb",s2:"#faf3ff",text:"#2b1f3d",dim:"#5b4a72",faint:"#6a5a84",accent:"#ef7a5e",accentStrong:"#b23f12",onAccent:"#2a1200",feed:"#c23a1a",sleep:"#6b4bcc",diaper:"#0f7a72",danger:"#c62233"},
+    dark:{bg:"#171021",bgGlow:"#2a1c3f",s0:"#221733",s1:"#2b1e40",s2:"#372a4e",text:"#f7f0fb",dim:"#d3c3e6",faint:"#a996c2",accent:"#ffb37a",accentStrong:"#ffc79a",onAccent:"#2a1200",feed:"#ff8f6b",sleep:"#b6a3ff",diaper:"#5fd6c4",danger:"#ff8a8a"} },
+   Dusk: { blurb: "<b>Cool twilight indigo</b> with a warm lamplight amber accent and a periwinkle signature. Most on-name for a lullaby app, dark-first, the most ownable — but the boldest change.",
+    light:{bg:"#ecebfa",bgGlow:"#e2def6",s0:"#ebe9fb",s1:"#ffffff",s2:"#f4f2fd",text:"#221d3d",dim:"#4c4470",faint:"#5f5782",accent:"#d98a2e",accentStrong:"#8f5510",onAccent:"#2a1a02",feed:"#c23a1a",sleep:"#5a3fd0",diaper:"#0f7a72",danger:"#c62233"},
+    dark:{bg:"#14112b",bgGlow:"#241a44",s0:"#1d1838",s1:"#262048",s2:"#322a5a",text:"#efeafb",dim:"#c9c0e8",faint:"#a49bca",accent:"#f2b65c",accentStrong:"#f6c680",onAccent:"#241704",feed:"#ff9e8a",sleep:"#b4a6ff",diaper:"#62d8c6",danger:"#ff8a8a"} },
+   Moonlight: { blurb: "<b>Silvery blue, near-monochrome, serene.</b> The calmest option — 'a sleep clinic done beautifully.' Coolest in feel; least warm/playful, most restful.",
+    light:{bg:"#eef2f7",bgGlow:"#e6edf5",s0:"#edf1f6",s1:"#ffffff",s2:"#f2f6fb",text:"#1c2733",dim:"#455464",faint:"#5b6a7d",accent:"#256b90",accentStrong:"#1f6a90",onAccent:"#ffffff",feed:"#ac4f1a",sleep:"#4a58c0",diaper:"#0f7a72",danger:"#c62233"},
+    dark:{bg:"#0f1622",bgGlow:"#1a2740",s0:"#16202f",s1:"#1e2a3b",s2:"#2b3a4f",text:"#eef3f9",dim:"#bccadb",faint:"#9dabbe",accent:"#8fd0e0",accentStrong:"#a7dceb",onAccent:"#06202a",feed:"#ec9a6a",sleep:"#9fb4ff",diaper:"#5fd6c4",danger:"#ff8a8a"} },
+   Sage: { blurb: "<b>Warm greige + eucalyptus.</b> Botanical, grounded, natural-parenting. Calm without going cool — a middle path between Dawn's warmth and Moonlight's quiet.",
+    light:{bg:"#f2f1ea",bgGlow:"#eef0e4",s0:"#f1f0e8",s1:"#fffffb",s2:"#f6f5ee",text:"#2c2e26",dim:"#545647",faint:"#64665a",accent:"#8a9a6a",accentStrong:"#4f6033",onAccent:"#20240f",feed:"#ab4f1a",sleep:"#5d5aa8",diaper:"#0f7a6a",danger:"#b83030"},
+    dark:{bg:"#1a1c16",bgGlow:"#262a1e",s0:"#22251c",s1:"#2b2f23",s2:"#383d2e",text:"#f2f3ea",dim:"#cdd0be",faint:"#abae9d",accent:"#b6c48e",accentStrong:"#c4d29c",onAccent:"#20240f",feed:"#eaa06a",sleep:"#b0aef0",diaper:"#66d3b0",danger:"#ff8f8f"} },
+   Clay: { blurb: "<b>Terracotta, sand & cream.</b> Earthy, tactile, handmade-warm — the coziest, most tactile option. Warmest of all five; least 'techy'.",
+    light:{bg:"#f7efe6",bgGlow:"#fbe6d3",s0:"#f6eee4",s1:"#fffdf9",s2:"#faf2ea",text:"#33251c",dim:"#6a5445",faint:"#7a6455",accent:"#d17a4e",accentStrong:"#a1481f",onAccent:"#2a1405",feed:"#b5301f",sleep:"#6b4bcc",diaper:"#0f7a72",danger:"#c62233"},
+    dark:{bg:"#1f150f",bgGlow:"#34211a",s0:"#291c14",s1:"#33251c",s2:"#433126",text:"#f7ede4",dim:"#e0c8b6",faint:"#b59a86",accent:"#f0a878",accentStrong:"#f6bb92",onAccent:"#2a1405",feed:"#ff8f6b",sleep:"#c3b0ff",diaper:"#5fd6c4",danger:"#ff8a8a"} }
+  };
+
+  var IC = {
+    feed: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 9h6v9a3 3 0 0 1-3 3 3 3 0 0 1-3-3z"/><path d="M10 9V6.5a2 2 0 1 1 4 0V9"/><path d="M9.5 13h5"/></svg>',
+    sleep: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
+    diaper: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6 6.4 6 10.3A6 6 0 0 1 6 13.3C6 9.4 12 3 12 3z"/></svg>',
+    nurse: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+    solids: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16a8 8 0 0 1-16 0z"/><path d="M12 12V4"/></svg>'
+  };
+
+  var TL = [
+    { hm:"12:47", ap:"PM", cat:"diaper", t1:"Diaper", d:"Mixed", who:"Grace" },
+    { hm:"12:23", ap:"PM", cat:"feed",   t1:"Nursing", d:"Right · 19m", who:"" },
+    { hm:"10:47", ap:"AM", cat:"sleep",  t1:"Sleep",  d:"1h 24m", who:"Grace" },
+    { div:"Yesterday" },
+    { hm:"11:29", ap:"PM", cat:"feed",   t1:"Nursing", d:"Left · 17m", who:"" },
+    { hm:"7:40",  ap:"PM", cat:"diaper", t1:"Diaper", d:"Wet", who:"Sam" }
+  ];
+
+  var cur = "Dawn", dark = false;
+  var stage = document.getElementById("stage");
+
+  function apply() {
+    var t = P[cur][dark ? "dark" : "light"];
+    var map = { bg:"--bg", bgGlow:"--bg-glow", s0:"--s0", s1:"--s1", s2:"--s2", text:"--text", dim:"--dim", faint:"--faint",
+      accent:"--accent", accentStrong:"--accent-strong", onAccent:"--on-accent", feed:"--feed", sleep:"--sleep", diaper:"--diaper", danger:"--danger" };
+    for (var k in map) stage.style.setProperty(map[k], t[k]);
+    stage.classList.toggle("dk", dark);
+    document.getElementById("blurb").innerHTML = P[cur].blurb;
+    document.getElementById("themeBtn").textContent = dark ? "◐ Switch to light" : "◐ Switch to dark";
+    document.querySelectorAll(".chip").forEach(function (c){ c.setAttribute("aria-pressed", String(c.dataset.p===cur)); });
+  }
+
+  // build chips
+  var chips = document.getElementById("chips");
+  Object.keys(P).forEach(function (name) {
+    var L = P[name].light;
+    var b = document.createElement("button");
+    b.className = "chip"; b.dataset.p = name; b.setAttribute("aria-pressed","false");
+    b.innerHTML = '<span class="sw"><i style="background:'+L.accent+'"></i><i style="background:'+L.feed+'"></i><i style="background:'+L.sleep+'"></i><i style="background:'+L.diaper+'"></i></span>'+name;
+    b.addEventListener("click", function (){ cur = name; apply(); });
+    chips.appendChild(b);
+  });
+
+  document.getElementById("themeBtn").addEventListener("click", function (){ dark = !dark; apply(); });
+
+  // fill tile icons
+  document.getElementById("ic-feed").innerHTML = IC.feed;
+  document.getElementById("ic-sleep").innerHTML = IC.sleep;
+
+  // build timeline
+  var tl = document.getElementById("tl");
+  TL.forEach(function (r) {
+    if (r.div) { tl.insertAdjacentHTML("beforeend", '<div class="divider"><span class="ln"></span><span class="lb">'+r.div+'</span><span class="ln"></span></div>'); return; }
+    tl.insertAdjacentHTML("beforeend",
+      '<div class="row"><div class="tm"><div class="hm">'+r.hm+'</div><div class="ap">'+r.ap+'</div></div>'+
+      '<div class="nd"><span class="sp"></span><span class="dot '+r.cat+'">'+IC[r.cat]+'</span></div>'+
+      '<div class="bd"><div class="t1">'+r.t1+' <span class="d">· '+r.d+'</span></div>'+(r.who?'<div class="t2">'+r.who+'</div>':'')+'</div></div>');
+  });
+
+  // shortcut row
+  var acts = document.createElement("div");
+  acts.className = "acts";
+  ["nurse","feed","sleep","diaper"].forEach(function (k, i) {
+    var lbl = ["Nurse","Bottle","Sleep","Diaper"][i];
+    acts.insertAdjacentHTML("beforeend", '<div class="act">'+IC[k]+lbl+'</div>');
+  });
+  document.querySelector(".phone").appendChild(acts);
+
+  apply();
+</script>
