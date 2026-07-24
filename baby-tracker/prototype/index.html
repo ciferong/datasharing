@@ -230,12 +230,21 @@
     background: linear-gradient(180deg, transparent, var(--bg) 34%); }
   .actions-wrap { position: relative; width: min(480px, 100%); }
   .actions { display: flex; flex-wrap: nowrap; gap: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x proximity; scrollbar-width: none; padding: 0 14px; }
+    scroll-snap-type: x proximity; scrollbar-width: none; padding: 0 40px 0 14px; }
   .actions::-webkit-scrollbar { display: none; }
-  /* a soft fade at the right edge hints there's more to scroll to, without a
-     visible scrollbar or blocking taps on whatever's underneath it */
-  .actions-wrap::after { content: ""; position: absolute; top: 0; right: 0; bottom: 0; width: 28px;
-    background: linear-gradient(90deg, transparent, var(--bg)); pointer-events: none; }
+  /* solid, high-contrast badge — not a subtle color fade, which tested as
+     nearly invisible (light surface fading into a light page background).
+     Reuses the --dim/--panel-ink-edit pairing already verified elsewhere in
+     this app for real contrast. Tappable (scrolls the row) and disappears
+     once there's nothing left to reveal, via updateScrollHint() in JS. */
+  .scrollhint { all: unset; cursor: pointer; position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+    width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--dim); color: var(--panel-ink-edit); box-shadow: var(--shadow);
+    transition: opacity .2s ease, transform .2s cubic-bezier(.34,1.4,.64,1); }
+  .scrollhint svg { width: 16px; height: 16px; }
+  .scrollhint:active { transform: translateY(-50%) scale(.88); }
+  .scrollhint.hide { opacity: 0; pointer-events: none; }
+  .scrollhint:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
   .act { all: unset; cursor: pointer; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 5px;
     padding: 12px 4px 10px; border-radius: 22px; font-weight: 700; font-size: 12px; min-height: 68px;
     flex: 0 0 70px; scroll-snap-align: start;
@@ -486,7 +495,7 @@
 
 <nav class="actionbar" aria-label="Log an event">
   <div class="actions-wrap">
-  <div class="actions">
+  <div class="actions" id="actionsRow">
     <button class="act nurse" id="actNurse" aria-label="Start nursing — tap to start on the usual side, hold for the other side">
       <span class="holdhint">HOLD ⇄</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v4.5l3 2"/></svg>
@@ -522,6 +531,9 @@
       <span class="lbl" id="moreLbl">More</span>
     </button>
   </div>
+  <button class="scrollhint" id="scrollHint" aria-label="Scroll to see more">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+  </button>
   </div>
 </nav>
 
@@ -700,6 +712,7 @@
     $("#sleepSub").textContent = db.timer&&db.timer.type==="sleep" ? "" : t("tap_start");
     $("#diaperSub").textContent = t("tap_wet");
     renderWho(); renderHero(); renderPredict(); renderTimeline(); renderStrip(); renderList(); renderTimer();
+    updateScrollHint(); // button visibility above can change how much is left to scroll to
   }
 
   function renderWho() {
@@ -1271,6 +1284,19 @@
   $("#actSolids").addEventListener("click", solidsSheet);
   $("#actBath").addEventListener("click", function (){ buzz(); logBath(Date.now()); });
   $("#actMoreRow").addEventListener("click", moreShortcutsSheet);
+
+  /* Shows a solid, tappable chevron badge whenever there's more of the
+     action row to scroll to (Bath/More living off-screen), and hides it
+     once fully scrolled — not a color fade, which tested as too subtle to
+     notice against the light theme's surfaces. */
+  var actionsRow=$("#actionsRow"), scrollHint=$("#scrollHint");
+  function updateScrollHint() {
+    var remaining = actionsRow.scrollWidth - actionsRow.clientWidth - actionsRow.scrollLeft;
+    scrollHint.classList.toggle("hide", remaining < 16);
+  }
+  actionsRow.addEventListener("scroll", updateScrollHint);
+  scrollHint.addEventListener("click", function (){ actionsRow.scrollBy({ left: 180, behavior: "smooth" }); });
+  window.addEventListener("resize", updateScrollHint);
   $("#babyBtn").addEventListener("click", babySheet);
   $("#whoChip").addEventListener("click", shareSheet);
   $("#setBtn").addEventListener("click", settingsSheet);
