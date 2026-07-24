@@ -114,6 +114,26 @@
   .hero .next b { color: var(--gold-text); font-weight: 700; }
   .hero .why { font-size: 13px; color: var(--faint); }
 
+  /* ============ predict — the one-tap "do this next" card ============ */
+  .predict { all: unset; cursor: pointer; box-sizing: border-box; display: flex; align-items: center; gap: 13px;
+    width: 100%; padding: 13px 14px; border-radius: 18px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 13%, var(--s1)), var(--s1));
+    box-shadow: var(--lit), var(--shadow); min-height: 64px; }
+  .predict:active { transform: translateY(1px) scale(.994); }
+  .predict:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  .predict-ic { width: 42px; height: 42px; border-radius: 13px; flex: none; display: grid; place-items: center;
+    background: color-mix(in srgb, currentColor 16%, var(--s1)); }
+  .predict-ic svg { width: 22px; height: 22px; }
+  .predict-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; text-align: left; }
+  .predict-lead { font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--gold-text); }
+  .predict-msg { font-size: 15.5px; font-weight: 700; color: var(--text); }
+  .predict-why { font-size: 12px; color: var(--faint); }
+  .predict-go { flex: none; font-size: 12px; font-weight: 700; color: var(--gold-text);
+    padding: 9px 12px; border-radius: 11px; background: color-mix(in srgb, var(--gold) 15%, transparent); white-space: nowrap; }
+  body.simple .predict-why { display: none; }
+  body.simple .predict { min-height: 76px; }
+  body.simple .predict-msg { font-size: 17px; }
+
   /* ============ ribbon — signature surface ============ */
   .ribbon { background: var(--s1); border-radius: 20px; padding: 16px 16px 12px; box-shadow: var(--lit), var(--shadow); }
   .ribbon .rhead { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
@@ -210,6 +230,12 @@
   /* hold-progress hint on long-pressable buttons */
   .act .holdhint { position: absolute; top: 7px; right: 9px; font-size: 9px; font-weight: 800; color: var(--faint); letter-spacing: .05em; }
   body.simple .act .holdhint { display: none; }
+
+  /* ties the predict card to its matching bottom button — a plain dot, not
+     glow, since glow is reserved for "happening right now" elsewhere */
+  .act .predictdot { position: absolute; top: 9px; left: 10px; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--gold); display: none; }
+  .act.predicted .predictdot { display: block; }
 
   /* ============ sheets ============ */
   .scrim { position: fixed; inset: 0; z-index: 50; background: var(--scrim); backdrop-filter: blur(2px);
@@ -387,9 +413,17 @@
   <section class="hero" aria-live="polite">
     <span class="lead" id="heroLead">Last fed</span>
     <span class="big disp tnum" id="heroBig">—</span>
-    <span class="next" id="heroNext" hidden></span>
-    <span class="why" id="heroWhy" hidden></span>
   </section>
+
+  <button class="predict" id="predictBtn" hidden>
+    <span class="predict-ic" id="predictIc"></span>
+    <span class="predict-txt">
+      <span class="predict-lead" id="predictLead">Likely next</span>
+      <span class="predict-msg" id="predictMsg"></span>
+      <span class="predict-why" id="predictWhy"></span>
+    </span>
+    <span class="predict-go">Tap to log</span>
+  </button>
 
   <section class="ribbon">
     <div class="rhead"><h2 id="tlTitle">Today's rhythm</h2><span class="meta" id="tlDate"></span></div>
@@ -417,22 +451,26 @@
 <nav class="actionbar" aria-label="Log an event">
   <div class="actions">
     <button class="act nurse" id="actNurse" aria-label="Start nursing — tap to start on the usual side, hold for the other side">
+      <span class="predictdot" aria-hidden="true"></span>
       <span class="holdhint">HOLD ⇄</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v4.5l3 2"/></svg>
       <span class="lbl" id="nurseLbl">Nurse</span>
       <span class="sub2" id="nurseSub">tap = Left</span>
     </button>
     <button class="act bottle" id="actBottle">
+      <span class="predictdot" aria-hidden="true"></span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2h8M9 2l.6 3M15 2l-.6 3"/><path d="M7.5 8.5c0-1.7 1.2-3 2.7-3.4h3.6c1.5.4 2.7 1.7 2.7 3.4V19a3 3 0 0 1-3 3H10.5a3 3 0 0 1-3-3z"/><path d="M8 12h4M8 15.5h4"/></svg>
       <span class="lbl" id="bottleLbl">Bottle</span>
       <span class="sub2" id="bottleSub"></span>
     </button>
     <button class="act sleep" id="actSleep">
+      <span class="predictdot" aria-hidden="true"></span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
       <span class="lbl" id="sleepLbl">Sleep</span>
       <span class="sub2" id="sleepSub">tap = start</span>
     </button>
     <button class="act diaper" id="actDiaper" aria-label="Log diaper — tap for wet, hold to choose">
+      <span class="predictdot" aria-hidden="true"></span>
       <span class="holdhint">HOLD ⋯</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18v3a9 9 0 0 1-9 9 9 9 0 0 1-9-9z"/><path d="M3 6c4 1.5 14 1.5 18 0"/></svg>
       <span class="lbl" id="diaperLbl">Diaper</span>
@@ -456,7 +494,7 @@
     en: { g_morning:"Good morning", g_afternoon:"Good afternoon", g_evening:"Good evening", g_night:"Late night",
       nurse:"Nurse", bottle:"Bottle", sleep:"Sleep", diaper:"Diaper", wake:"Wake",
       left:"Left", right:"Right", wet:"Wet", dirty:"Dirty", mixed:"Mixed", solids:"Solids", nursing:"Nursing",
-      last_fed:"Last fed", ago:"ago", next_around:"Next feed around", based_on:"Based on a typical", gap:"gap between recent feeds",
+      last_fed:"Last fed", ago:"ago",
       todays_rhythm:"Today's rhythm", recent:"Recent", now:"Now", asleep:"Asleep", awake:"Awake",
       sleep_today:"Sleep today", diapers:"Diapers", fed_today:"Fed today", last_diaper:"Last diaper", right_now:"Right now",
       saved:"saved", when:"When", today:"today", tap_start:"tap = start", tap_wet:"tap = wet",
@@ -467,7 +505,7 @@
     tl: { g_morning:"Magandang umaga", g_afternoon:"Magandang hapon", g_evening:"Magandang gabi", g_night:"Gabing-gabi na",
       nurse:"Pasuso", bottle:"Bote", sleep:"Tulog", diaper:"Lampin", wake:"Gising",
       left:"Kaliwa", right:"Kanan", wet:"Basa", dirty:"Dumi", mixed:"Basa at dumi", solids:"Pagkain", nursing:"Pasuso",
-      last_fed:"Huling pakain", ago:"ang nakalipas", next_around:"Susunod na pakain bandang", based_on:"Batay sa karaniwang", gap:"pagitan ng pakain",
+      last_fed:"Huling pakain", ago:"ang nakalipas",
       todays_rhythm:"Takbo ngayong araw", recent:"Mga huling ginawa", now:"Ngayon", asleep:"Tulog", awake:"Gising",
       sleep_today:"Tulog ngayon", diapers:"Lampin", fed_today:"Nainom ngayon", last_diaper:"Huling lampin", right_now:"Ngayon mismo",
       saved:"na-save", when:"Kailan", today:"ngayon", tap_start:"pindot = simula", tap_wet:"pindot = basa",
@@ -591,7 +629,7 @@
     $("#bottleSub").textContent = db.pref.lastAmount? "tap = "+db.pref.lastAmount+" "+db.pref.unit : "";
     $("#sleepSub").textContent = db.timer&&db.timer.type==="sleep" ? "" : t("tap_start");
     $("#diaperSub").textContent = t("tap_wet");
-    renderWho(); renderHero(); renderTimeline(); renderStrip(); renderList(); renderTimer();
+    renderWho(); renderHero(); renderPredict(); renderTimeline(); renderStrip(); renderList(); renderTimer();
   }
 
   function renderWho() {
@@ -606,24 +644,99 @@
   }
 
   function renderHero() {
-    var big=$("#heroBig"), lead=$("#heroLead"), next=$("#heroNext"), why=$("#heroWhy");
+    var big=$("#heroBig"), lead=$("#heroLead");
     $(".hero").classList.toggle("live", !!db.timer);
     if (db.timer) {
       lead.textContent = db.timer.type==="sleep" ? t("asleep") : t("nursing")+" · "+(db.timer.side==="R"?t("right"):t("left"));
       big.innerHTML = '<b>'+dur(Date.now()-db.timer.start)+'</b>';
-      next.hidden=true; why.hidden=true; return;
+      return;
     }
     var feeds=db.events.filter(function (x){ return x.type==="feed"; });
     var lf=feeds.length?feeds[feeds.length-1]:null;
     lead.textContent = t("last_fed");
     big.innerHTML = lf ? '<b>'+agoStr(lf.start)+'</b> '+t("ago") : "—";
-    if (feeds.length>=2 && !simpleOn()) {
-      var gaps=[]; for (var i=Math.max(1,feeds.length-5);i<feeds.length;i++) gaps.push(feeds[i].start-feeds[i-1].start);
-      var avg=gaps.reduce(function (a,b){return a+b;},0)/gaps.length, nx=feeds[feeds.length-1].start+avg, left=nx-Date.now();
-      next.hidden=false; why.hidden=false;
-      next.innerHTML = left<=0 ? "Likely ready to feed <b>now</b>" : t("next_around")+" <b>"+fmtClock(nx)+"</b> · "+durShort(left);
-      why.textContent = t("based_on")+" "+durShort(avg)+" "+t("gap")+".";
-    } else { next.hidden=true; why.hidden=true; }
+  }
+
+  /* ---------- predicted next action ----------
+     Looks at feed/sleep/diaper independently: the average gap between the
+     last few of that type vs. how long it's actually been since the last
+     one. Whichever type is furthest into its typical cycle (highest
+     elapsed/average ratio) is the prediction — as long as there's enough
+     history (2+ events) and it's at least ~55% of the way through a typical
+     cycle, so this doesn't fire five minutes after a feed just because
+     "feed" happened to have the thinnest history. No timer running, since
+     there's no "next action" question mid-feed/mid-sleep — the hero already
+     covers that. */
+  function computePrediction() {
+    if (db.timer) return null;
+    var now=Date.now();
+    var byType = {
+      feed:   db.events.filter(function (x){ return x.type==="feed"; }),
+      sleep:  db.events.filter(function (x){ return x.type==="sleep"; }),
+      diaper: db.events.filter(function (x){ return x.type==="diaper"; })
+    };
+    var best=null;
+    Object.keys(byType).forEach(function (type) {
+      var evs=byType[type];
+      if (evs.length<2) return;
+      if (type==="feed" && !predictedFeedSub(evs)) return; // no nursing/bottle history to act on yet
+      var recent=evs.slice(-6), gaps=[];
+      for (var i=1;i<recent.length;i++) gaps.push(recent[i].start-recent[i-1].start);
+      var avg=gaps.reduce(function (a,b){return a+b;},0)/gaps.length;
+      if (avg<=0) return;
+      var last=evs[evs.length-1], elapsed=now-last.start, ratio=elapsed/avg;
+      if (!best || ratio>best.ratio) best={ type:type, evs:evs, avg:avg, elapsed:elapsed, ratio:ratio };
+    });
+    if (!best || best.ratio<0.55) return null;
+    return best;
+  }
+  function predictedFeedSub(evs) {
+    var subs=evs.slice(-5).map(function (e){ return e.sub; }).filter(function (s){ return s==="nursing"||s==="bottle"; });
+    if (!subs.length) return null;
+    var counts={}; subs.forEach(function (s){ counts[s]=(counts[s]||0)+1; });
+    if (counts.nursing===counts.bottle) return subs[subs.length-1];
+    return counts.nursing>(counts.bottle||0) ? "nursing" : "bottle";
+  }
+
+  function renderPredict() {
+    var btn=$("#predictBtn");
+    ["actNurse","actBottle","actSleep","actDiaper"].forEach(function (id){ $("#"+id).classList.remove("predicted"); });
+    var p=computePrediction();
+    if (!p) { btn.hidden=true; btn.onclick=null; return; }
+
+    var icon, color, label, actFn, badgeId, cycleWord =
+      p.type==="feed" ? "feeds" : p.type==="sleep" ? "sleeps" : "diapers";
+
+    if (p.type==="sleep") {
+      icon=ICONS.sleep; color="var(--sleep)"; label=t("sleep"); badgeId="actSleep";
+      actFn=function (){ startTimer("sleep"); };
+    } else if (p.type==="diaper") {
+      icon=ICONS.diaper; color="var(--diaper)"; label=t("diaper")+" · "+t("wet"); badgeId="actDiaper";
+      actFn=function (){ logDiaper("wet", Date.now()); };
+    } else {
+      icon=ICONS.feed; color="var(--feed)";
+      var sub=predictedFeedSub(p.evs);
+      if (sub==="bottle") {
+        var lastBottle=p.evs.filter(function (e){ return e.sub==="bottle"; }).pop();
+        var amount=(lastBottle&&lastBottle.amount)||db.pref.lastAmount||(db.pref.unit==="oz"?4:120);
+        var unit=(lastBottle&&lastBottle.unit)||db.pref.unit||"ml";
+        label=t("bottle")+" · "+amount+" "+unit; badgeId="actBottle";
+        actFn=function (){ logBottle(amount, unit, Date.now()); };
+      } else {
+        var side=nextSide();
+        label=t("nursing")+" · "+(side==="R"?t("right"):t("left")); badgeId="actNurse";
+        actFn=function (){ startTimer("feed", side); };
+      }
+    }
+
+    $("#predictIc").innerHTML=icon; $("#predictIc").style.color=color;
+    $("#predictLead").textContent = p.ratio>=1 ? "Likely ready" : "Likely next";
+    $("#predictMsg").textContent = label;
+    $("#predictWhy").textContent = "Usually ~"+durShort(p.avg)+" between "+cycleWord+" · last one "+durShort(p.elapsed)+" ago";
+    btn.setAttribute("aria-label", "Log "+label+" now — predicted next action");
+    btn.hidden=false;
+    btn.onclick=function (){ buzz(16); actFn(); };
+    if (badgeId) $("#"+badgeId).classList.add("predicted");
   }
 
   function renderTimeline() {
