@@ -1009,7 +1009,7 @@
   function last24Events() { var cut=Date.now()-86400000; return db.events.filter(function (x){ return x.start>=cut; }); }
   function mini(color, icon, value, label) {
     return '<span class="m" style="color:'+color+'"><span class="mi">'+icon+'</span>'+
-      '<span class="mt"><span class="mv">'+value+'</span><span class="ml">'+label+'</span></span></span>';
+      '<span class="mt"><span class="mv">'+value+'</span>'+(label?'<span class="ml">'+label+'</span>':'')+'</span></span>';
   }
   // The "Last 24 Hours" header: totals/counts for the window (the aggregate).
   // Recency ("last fed/changed/slept") lives on the baby-hero, so it's never
@@ -1020,7 +1020,7 @@
     var sleepMs=0;
     db.events.forEach(function (x){ if (x.type==="sleep" && x.end){ var a=Math.max(x.start,cut), b=Math.min(x.end,now); if (b>a) sleepMs+=b-a; } });
     if (db.timer && db.timer.type==="sleep") sleepMs += now - Math.max(db.timer.start,cut);
-    out += mini("var(--sleep)", ICONS.sleep, sleepMs?durShort(sleepMs):"0m", t("sleep").toLowerCase());
+    out += mini("var(--sleep)", ICONS.sleep, sleepMs?durShort(sleepMs):"0m", "");
     // feeds split by type so the two magnitudes never conflate: nursing is
     // timed (minutes), bottle is volume, solids is a count. Each shown only if
     // it happened in the window — so it adapts to the baby's feeding style.
@@ -1029,25 +1029,25 @@
     var nurs=feeds.filter(function (x){ return x.sub==="nursing"; });
     var nMs=nurs.reduce(function (a,x){ return a+(x.end?x.end-x.start:0); },0), nCount=nurs.length;
     if (db.timer && db.timer.type==="feed") { nMs += now-Math.max(db.timer.start,cut); nCount++; }
-    if (nCount) out += mini("var(--feed)", ICONS.nurse, durShort(nMs), t("nursing").toLowerCase()+" · "+nCount+"×");
+    if (nCount) out += mini("var(--feed)", ICONS.nurse, durShort(nMs), nCount+"×");
     // bottle — total volume, unit-aware (oz/ml) · N
     var bottles=feeds.filter(function (x){ return x.sub==="bottle"; });
     if (bottles.length) {
       var unit=bottles[bottles.length-1].unit||db.pref.unit||"ml";
       var tot=bottles.filter(function (x){ return (x.unit||"ml")===unit; }).reduce(function (a,x){ return a+(+x.amount||0); },0);
-      out += mini("var(--feed)", ICONS.feed, (unit==="oz"?(+tot.toFixed(1)):tot)+" "+unit, t("bottle").toLowerCase()+" · "+bottles.length+"×");
+      out += mini("var(--feed)", ICONS.feed, (unit==="oz"?(+tot.toFixed(1)):tot)+" "+unit, bottles.length+"×");
     }
     // solids — count
     var solids=feeds.filter(function (x){ return x.sub==="solids"; });
-    if (solids.length) out += mini("var(--gold-text)", ICONS.solids, String(solids.length), t("solids").toLowerCase());
+    if (solids.length) out += mini("var(--gold-text)", ICONS.solids, String(solids.length), "");
     // diapers — count, wet/dirty breakdown as the label (mixed counts in both)
     var dp=ev.filter(function (x){ return x.type==="diaper"; });
     var w=dp.filter(function (x){ return x.sub!=="dirty"; }).length, d=dp.filter(function (x){ return x.sub!=="wet"; }).length;
     out += mini("var(--diaper)", ICONS.diaper, String(dp.length),
-      dp.length ? w+" "+t("wet").toLowerCase()+" · "+d+" "+t("dirty").toLowerCase() : t("diapers").toLowerCase());
+      dp.length ? w+" "+t("wet").toLowerCase()+" · "+d+" "+t("dirty").toLowerCase() : "");
     // meds — count, only when they happened in the window
     var meds=ev.filter(function (x){ return x.type==="meds"; });
-    if (meds.length) out += mini("var(--gold-text)", ICONS.meds, String(meds.length), t("meds").toLowerCase());
+    if (meds.length) out += mini("var(--gold-text)", ICONS.meds, String(meds.length), "");
     $("#l24sum").innerHTML=out;
   }
 
